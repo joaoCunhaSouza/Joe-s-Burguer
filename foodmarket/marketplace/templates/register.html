@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cadastro</title>
+<style>
+body {background:white; color:red; font-family:sans-serif;}
+form {max-width:300px; margin:auto;}
+input {width:100%; margin:5px 0; padding:10px;}
+button {background:red; color:white; width:100%; padding:10px;}
+</style>
+</head>
+<body>
+<h2 style="text-align:center;">Cadastro</h2>
+<form method="post">
+  {% csrf_token %}
+  <input name="name" placeholder="Nome" required>
+  <input name="phone" placeholder="Celular" required>
+  <input type="email" name="email" placeholder="Gmail" required>
+  <input type="password" name="password" placeholder="Senha" required>
+  <button type="submit">Cadastrar</button>
+</form>
+</body>
+</html>

@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Home</title>
+<style>
+/* Reset e base */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  font-family: 'Roboto', Arial, sans-serif;
+}
+
+body {
+  background: #f5f5f5;
+  color: #333;
+  line-height: 1.5;
+  overflow-x: hidden;
+  touch-action: pan-y;
+}
+
+/* Header */
+header {
+  background-color: #ff4d4d;
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+
+header h3 {
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+
+/* Circle with user initial */
+.circle {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  background: white;
+  color: #ff4d4d;
+  border-radius: 50%;
+  text-align: center;
+  line-height: 40px;
+  font-weight: bold;
+  cursor: pointer;
+  border: 2px solid #ff4d4d;
+  transition: all 0.2s ease;
+}
+
+.circle:active {
+  transform: scale(0.95);
+  opacity: 0.9;
+}
+
+/* Status indicator */
+.status {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background: #4caf50;
+  border: 2px solid white;
+  border-radius: 50%;
+}
+
+/* Dropdown menu */
+#menu {
+  background: white;
+  position: absolute;
+  right: 10px;
+  top: 60px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 10px;
+  z-index: 100;
+}
+
+#menu a {
+  display: block;
+  color: #ff4d4d;
+  text-decoration: none;
+  padding: 8px;
+  font-weight: 500;
+  border-radius: 4px;
+  transition: background 0.2s;
+}
+
+#menu a:hover {
+  background: #f9f9f9;
+}
+
+/* Combo Cards */
+.combo {
+  background: white;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  margin: 10px;
+  padding: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+  transition: transform 0.2s ease;
+}
+
+.combo:active {
+  transform: scale(0.98);
+}
+
+.combo img {
+  width: 100%;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.combo h4 {
+  font-size: 1.1rem;
+  color: #ff4d4d;
+  margin-top: 8px;
+  font-weight: 600;
+}
+
+.combo p {
+  font-size: 1rem;
+  color: #666;
+}
+
+/* Bloqueio desktop */
+@media only screen and (min-width: 768px) {
+  body::before {
+    content: "Este sistema é otimizado apenas para dispositivos móveis. Por favor, acesse de um smartphone.";
+    display: block;
+    padding: 50px;
+    text-align: center;
+    font-size: 24px;
+    color: #f44336;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: white;
+    z-index: 1000;
+  }
+
+  body > *:not(:before) {
+    display: none !important;
+  }
+}
+</style>
+<script>
+function toggleMenu() {
+  var menu = document.getElementById('menu');
+  if (menu.style.display === 'block') {
+    menu.style.display = 'none';
+  } else {
+    menu.style.display = 'block';
+  }
+}
+</script>
+</head>
+<body>
+<header>
+  <h3>Joe's Burgers</h3>
+  <div class="circle" onclick="toggleMenu();">
+    {{request.user.first_name|slice:":1"|upper}}
+    <div class="status"></div>
+  </div>
+</header>
+
+<div id="menu" style="display:none;">
+  <a href="{% url 'logout' %}">Sair</a>
+  <!-- <a href="{% url 'change_password' %}">Alterar Senha</a>
+  <a href="{% url 'change_name' %}">Alterar Nome</a>
+  <a href="{% url 'change_email' %}">Alterar Email</a> -->
+</div>
+
+{% for combo in combos %}
+<div class="combo">
+  <a href="{% url 'combo_detail' combo.id %}">
+    <img src="{{combo.image.url}}" alt="{{combo.name}}">
+    <h4>{{combo.name}}</h4>
+    <p>R$ {{combo.price}}</p>
+  </a>
+</div>
+{% endfor %}
+</body>
+</html>
