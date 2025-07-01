@@ -2,232 +2,157 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>{{ combo.name }}</title>
-
-  <style>
-    /* === Seu CSS (mantido igual) === */
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      -webkit-tap-highlight-color: transparent;
-      font-family: 'Roboto', Arial, sans-serif;
-    }
-    body {
-      background-color: #f5f5f5;
-      color: #333;
-      line-height: 1.5;
-      overflow-x: hidden;
-      touch-action: pan-y;
-    }
-    header {
-      background-color: #ff4d4d;
-      color: white;
-      padding: 16px 0;
-      text-align: center;
-      position: static;
-      z-index: 100;
-      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    }
-    header h1 {
-      font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
-      font-size: 1.5rem;
-      font-weight: 700;
-    }
-    .main-container {
-      width: 100%;
-      max-width: 100vw;
-      overflow-x: hidden;
-    }
-    .carousel-container {
-      width: 100%;
-      margin: 20px 0;
-      display: flex;
-      justify-content: center;
-      gap: 10px;
-      overflow-x: visible;
-      padding: 0 20px;
-    }
-    .carousel-item {
-      text-align: center;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      flex: 0 0 auto;
-      opacity: 0.7;
-      transform: scale(0.9);
-    }
-    .carousel-item.active {
-      opacity: 1;
-      transform: scale(1.1);
-      order: 2;
-    }
-    .carousel-item.prev {
-      order: 1;
-      opacity: 0.7;
-      transform: scale(0.9);
-    }
-    .carousel-item.next {
-      order: 3;
-      opacity: 0.7;
-      transform: scale(0.9);
-    }
-    .carousel-item.hidden {
-      display: none;
-    }
-    .carousel-item img {
-      max-width: 70px;
-      height: auto;
-      object-fit: contain;
-    }
-    .carousel-item .item-label {
-      margin-top: 5px;
-      font-size: 0.8rem;
-      color: #ff4d4d;
-      font-weight: 600;
-    }
-    .slide-indicator {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      margin: 10px 0;
-    }
-    .indicator-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background-color: #ccc;
-      cursor: pointer;
-    }
-    .indicator-dot.active {
-      background-color: #ff4d4d;
-    }
-    .product-content {
-      padding: 0 15px;
-      width: 100%;
-      height: calc(100vh - 300px);
-      overflow-y: auto;
-      -webkit-overflow-scrolling: touch;
-      scrollbar-width: thin;
-      scrollbar-color: #ff4d4d #f5f5f5;
-    }
-    .product-header {
-      text-align: center;
-      margin-bottom: 15px;
-    }
-    .product-header h2 {
-      font-size: 1.3rem;
-      color: #ff4d4d;
-      margin-bottom: 5px;
-    }
-    .product-header p {
-      color: #666;
-      font-size: 0.9rem;
-    }
-    .ingredient-price {
-      font-size: 1rem;
-      color: #ff4d4d;
-      font-weight: 600;
-      display: block;
-      margin-top: 6px;
-    }
-    .quantity-controls {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 15px 0;
-    }
-    .quantity-btn {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background-color: #ff4d4d;
-      color: white;
-      border: none;
-      font-size: 1.1rem;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-    }
-    .quantity-btn:active {
-      background-color: #e63c3c;
-      transform: scale(0.95);
-    }
-    .quantity-value {
-      min-width: 30px;
-      text-align: center;
-      font-weight: 600;
-      font-size: 1.1rem;
-      margin: 0 10px;
-    }
-    .order-summary {
-      padding: 15px;
-      max-width: 100%;
-      margin: 0 auto;
-      background-color: #f5f5f5;
-      z-index: 90;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-      margin-bottom: 15px;
-    }
-    .order-total {
-      background-color: white;
-      border-radius: 10px;
-      padding: 16px;
-      text-align: center;
-      font-size: 1.3rem;
-      font-weight: 700;
-      color: #ff4d4d;
-    }
-    .action-buttons {
-      display: flex;
-      gap: 10px;
-      margin-top: 10px;
-      padding-bottom: 15px;
-    }
-    .action-btn {
-      flex: 1;
-      padding: 14px;
-      border-radius: 8px;
-      font-weight: 600;
-      text-align: center;
-      text-decoration: none;
-      font-size: 1rem;
-      border: none;
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .action-btn:active {
-      transform: scale(0.98);
-      opacity: 0.9;
-    }
-    .confirm-btn {
-      background-color: #f44336;
-      color: white;
-    }
-    @media only screen and (min-width: 768px) {
-      body::before {
-        content: "Este sistema é otimizado apenas para dispositivos móveis.";
-        display: block;
-        padding: 50px;
-        text-align: center;
-        font-size: 24px;
-        color: #f44336;
-        position: fixed;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
-        background-color: white;
-        z-index: 1000;
-      }
-      body > *:not(:before) {
-        display: none !important;
-      }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ combo.name }}</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  font-family: 'Roboto', Arial, sans-serif;
+}
+body {
+  background-color: #f5f5f5;
+  color: #333;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+header {
+  background-color: #ff4d4d;
+  color: white;
+  padding: 16px 0;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.main-container {
+  width: 100%;
+  max-width: 100vw;
+}
+.carousel-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin: 20px 0;
+  padding: 0 10px;
+}
+.carousel-slot {
+  flex: 0 0 30%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100px;
+}
+.carousel-item {
+  text-align: center;
+  cursor: pointer;
+  opacity: 0.5;
+  transform: scale(0.9);
+  transition: all 0.3s ease;
+}
+.carousel-item.active {
+  opacity: 1;
+  transform: scale(1.1);
+}
+.carousel-item img {
+  max-width: 70px;
+}
+.item-label {
+  margin-top: 5px;
+  font-size: 0.8rem;
+  color: #ff4d4d;
+  font-weight: 600;
+}
+.product-content {
+  padding: 0 15px;
+}
+.product-header {
+  text-align: center;
+  margin-bottom: 15px;
+}
+.product-header h2 {
+  font-size: 1.3rem;
+  color: #ff4d4d;
+}
+.product-header p {
+  color: #666;
+  font-size: 0.9rem;
+}
+.ingredient-price {
+  font-size: 1rem;
+  color: #ff4d4d;
+  font-weight: 600;
+  display: block;
+  margin-top: 6px;
+}
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 15px 0;
+}
+.quantity-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.quantity-btn:active {
+  background-color: #e63c3c;
+}
+.quantity-value {
+  min-width: 30px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin: 0 10px;
+}
+.order-summary {
+  padding: 15px;
+  background-color: #f5f5f5;
+}
+.order-total {
+  background-color: white;
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #ff4d4d;
+}
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.action-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-align: center;
+  border: none;
+  cursor: pointer;
+}
+.confirm-btn {
+  background-color: #ff4d4d;
+  color: white;
+}
+</style>
 </head>
 <body>
 <header>
@@ -236,20 +161,9 @@
 
 <div class="main-container">
   <div class="carousel-container">
-    {% for product in products %}
-      <div class="carousel-item {% if forloop.first %}active{% elif forloop.counter == 2 %}next{% else %}hidden{% endif %}"
-           data-target="product-{{ forloop.counter0 }}"
-           data-index="{{ forloop.counter0 }}">
-        <img src="{{ product.image.url }}" alt="{{ product.name }}">
-        <div class="item-label">{{ product.name }}</div>
-      </div>
-    {% endfor %}
-  </div>
-
-  <div class="slide-indicator">
-    {% for product in products %}
-      <div class="indicator-dot {% if forloop.first %}active{% endif %}" data-slide="{{ forloop.counter0 }}"></div>
-    {% endfor %}
+    <div class="carousel-slot" id="slot-left"></div>
+    <div class="carousel-slot" id="slot-center"></div>
+    <div class="carousel-slot" id="slot-right"></div>
   </div>
 
   <div class="product-content">
@@ -263,11 +177,7 @@
       <div class="quantity-controls">
         <button class="quantity-btn decrease">-</button>
         <span class="quantity-value" id="product-quantity-{{ product.id }}">
-          {% if product.name == "Hambúrguer" or product.name == "Refrigerante" %}
-            1
-          {% else %}
-            0
-          {% endif %}
+          {% if product.name == "Hambúrguer" or product.name == "Refrigerante" %}1{% else %}0{% endif %}
         </span>
         <button class="quantity-btn increase">+</button>
       </div>
@@ -277,93 +187,104 @@
 </div>
 
 <div class="order-summary">
-  <div class="order-total" id="order-total">
-    Total: R$ 0,00
-  </div>
+  <div class="order-total" id="order-total">Total: R$ 0,00</div>
   <div class="action-buttons">
-    <button class="action-btn confirm-btn" id="finalize-order">Finalizar Pedido</button>
+    <button class="action-btn confirm-btn">Finalizar Pedido</button>
   </div>
 </div>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-  const prices = {
+  const products = [
     {% for product in products %}
-      'product-quantity-{{ product.id }}': {{ product.price|floatformat:2 }},
+      {
+        index: {{ forloop.counter0 }},
+        id: "{{ product.id }}",
+        name: "{{ product.name|escapejs }}",
+        price: {{ product.price|floatformat:2 }},
+        img: "{{ product.image.url }}"
+      },
     {% endfor %}
+  ];
+
+  const slots = {
+    left: document.getElementById('slot-left'),
+    center: document.getElementById('slot-center'),
+    right: document.getElementById('slot-right')
   };
 
-  function updateOrderTotal() {
-    let total = 0;
-    for (const [id, price] of Object.entries(prices)) {
-      const quantity = parseInt(document.getElementById(id).textContent);
-      total += quantity * price;
-    }
-    const totalText = `Total: R$ ${total.toFixed(2).replace('.', ',')}`;
-    document.getElementById('order-total').textContent = totalText;
-  }
-
-  document.querySelectorAll('.quantity-btn').forEach(btn => {
-    btn.addEventListener('click', function() {
-      const isIncrease = this.classList.contains('increase');
-      const quantityElement = this.parentElement.querySelector('.quantity-value');
-      let quantity = parseInt(quantityElement.textContent);
-
-      if (isIncrease) quantity++;
-      else if (quantity > 0) quantity--;
-
-      quantityElement.textContent = quantity;
-      updateOrderTotal();
-    });
-  });
-
-  const carouselItems = document.querySelectorAll('.carousel-item');
-  const dots = document.querySelectorAll('.indicator-dot');
   const contents = {};
   {% for product in products %}
     contents['product-{{ forloop.counter0 }}'] = document.getElementById('product-{{ forloop.counter0 }}-content');
   {% endfor %}
 
-  let currentSlide = 'product-0';
-  updateActiveContent(currentSlide);
+  let activeIndex = 0;
 
-  carouselItems.forEach(item => {
-    item.addEventListener('click', function() {
-      const target = this.getAttribute('data-target');
-      const index = parseInt(this.getAttribute('data-index'));
-      currentSlide = target;
-      updateCarouselItems(index);
-      updateActiveContent(target);
-      updateDots(index);
+  function renderCarousel() {
+    const prev = products[activeIndex - 1];
+    const active = products[activeIndex];
+    const next = products[activeIndex + 1];
+
+    slots.left.innerHTML = prev ? createItem(prev, false) : '';
+    slots.center.innerHTML = createItem(active, true);
+    slots.right.innerHTML = next ? createItem(next, false) : '';
+
+    updateContent();
+  }
+
+  function createItem(product, isActive) {
+    return `
+      <div class="carousel-item ${isActive ? 'active' : ''}" data-index="${product.index}">
+        <img src="${product.img}" alt="${product.name}">
+        <div class="item-label">${product.name}</div>
+      </div>`;
+  }
+
+  function updateContent() {
+    Object.values(contents).forEach(div => div.style.display = 'none');
+    const key = 'product-' + activeIndex;
+    if(contents[key]) contents[key].style.display = 'block';
+  }
+
+  // Initial render
+  renderCarousel();
+
+  // Handle click
+  document.querySelectorAll('.carousel-slot').forEach(slot => {
+    slot.addEventListener('click', function(e) {
+      const item = e.target.closest('.carousel-item');
+      if (item) {
+        activeIndex = parseInt(item.dataset.index);
+        renderCarousel();
+      }
     });
   });
 
-  function updateCarouselItems(activeIndex) {
-    const total = carouselItems.length;
-    const prevIndex = (activeIndex - 1 + total) % total;
-    const nextIndex = (activeIndex + 1) % total;
+  // Quantity update
+  const prices = {};
+  products.forEach(p => {
+    prices['product-quantity-' + p.id] = p.price;
+  });
 
-    carouselItems.forEach((item, index) => {
-      item.classList.remove('active', 'prev', 'next', 'hidden');
-      if (index === activeIndex) item.classList.add('active');
-      else if (index === prevIndex) item.classList.add('prev');
-      else if (index === nextIndex) item.classList.add('next');
-      else item.classList.add('hidden');
-    });
+  function updateOrderTotal() {
+    let total = 0;
+    for (const id in prices) {
+      const qty = parseInt(document.getElementById(id).textContent);
+      total += qty * prices[id];
+    }
+    document.getElementById('order-total').textContent = `Total: R$ ${total.toFixed(2).replace('.', ',')}`;
   }
 
-  function updateActiveContent(target) {
-    Object.values(contents).forEach(content => {
-      content.style.display = 'none';
+  document.querySelectorAll('.quantity-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const span = this.parentElement.querySelector('.quantity-value');
+      let qty = parseInt(span.textContent);
+      if (this.classList.contains('increase')) qty++;
+      else if (qty > 0) qty--;
+      span.textContent = qty;
+      updateOrderTotal();
     });
-    contents[target].style.display = 'block';
-  }
-
-  function updateDots(activeIndex) {
-    dots.forEach((dot, index) => {
-      dot.classList.toggle('active', index === activeIndex);
-    });
-  }
+  });
 
   updateOrderTotal();
 });
