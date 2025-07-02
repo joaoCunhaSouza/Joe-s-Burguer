@@ -12,4 +12,5 @@ urlpatterns = [
     path('alterar-senha/', views.change_password, name='change_password'),
     path('alterar-nome/', views.change_name, name='change_name'),
     path('alterar-email/', views.change_email, name='change_email'),
+    path('combo/<int:combo_id>/add-to-cart/', views.add_to_cart, name='add_to_cart'),
 ]

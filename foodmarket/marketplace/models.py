@@ -48,3 +48,36 @@ class Combo(models.Model):
 
     def __str__(self):
         return self.name
+
+class CartItem(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cart_items')
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, null=True, blank=True)
+    subproduct = models.ForeignKey(SubProduct, on_delete=models.CASCADE, null=True, blank=True)
+    combo = models.ForeignKey(
+        'Combo',  # Use string literal if Combo is defined later in the same file
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True
+    )
+    quantity = models.PositiveIntegerField(default=1)
+    date_added = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        if self.combo:
+            return f"{self.quantity} x {self.combo.name} ({self.user.username}'s cart)"
+        elif self.product:
+            return f"{self.quantity} x {self.product.name} ({self.user.username}'s cart)"
+        elif self.subproduct:
+            return f"{self.quantity} x {self.subproduct.name} ({self.user.username}'s cart)"
+        return f"Cart Item ({self.user.username})" # Fallback
+
+    @property
+    def get_total_price(self):
+        if self.combo:
+            return self.combo.price * self.quantity
+        elif self.product:
+            return self.product.price * self.quantity
+        elif self.subproduct:
+            return self.subproduct.price * self.quantity
+        return 0
+    

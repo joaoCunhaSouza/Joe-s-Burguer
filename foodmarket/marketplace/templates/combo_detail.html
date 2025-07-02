@@ -92,8 +92,6 @@ header h1 {
   display: block;
   margin-top: 6px;
 }
-
-/* Lista de subprodutos */
 .ingredients-list {
   list-style: none;
   margin-top: 20px;
@@ -118,7 +116,6 @@ header h1 {
   height: 40px;
   object-fit: cover;
   border-radius: 6px;
-  margin-right: 12px;
 }
 .ingredient-details {
   display: flex;
@@ -188,6 +185,26 @@ header h1 {
   background-color: #ff4d4d;
   color: white;
 }
+
+/* Estilo do grid do refrigerante */
+.drink-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+.drink-item {
+  background: white;
+  border-radius: 8px;
+  text-align: center;
+  padding: 10px;
+  cursor: pointer;
+  transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.drink-item.selected {
+  box-shadow: 0 0 6px #ff4d4d;
+}
 </style>
 </head>
 <body>
@@ -205,33 +222,47 @@ header h1 {
   <div class="product-content">
     {% for product in products %}
     <div id="product-{{ forloop.counter0 }}-content" {% if not forloop.first %}style="display:none;"{% endif %}>
- 
-
-     
-
       {% if product.subproducts.exists %}
-      <ul class="ingredients-list">
-        {% for subproduct in product.subproducts.all %}
-        <li class="ingredient-item">
-          <div class="ingredient-info">
-            {% if subproduct.image %}
-              <img src="{{ subproduct.image.url }}" class="ingredient-icon" alt="{{ subproduct.name }}">
-            {% else %}
-              <img src="{% static 'img/default-subproduct.png' %}" class="ingredient-icon" alt="{{ subproduct.name }}">
-            {% endif %}
-            <div class="ingredient-details">
-              <span class="ingredient-name">{{ subproduct.name }}</span>
-              <span class="ingredient-price">R$ {{ subproduct.price|floatformat:2 }} por unidade</span>
+        {% if product.name == "Refrigerante" %}
+          <div class="drink-grid">
+            {% for subproduct in product.subproducts.all %}
+            <div class="drink-item {% if forloop.first %}selected{% endif %}" data-subproduct-id="{{ subproduct.id }}">
+              {% if subproduct.image %}
+                <img src="{{ subproduct.image.url }}" class="ingredient-icon" alt="{{ subproduct.name }}">
+              {% else %}
+                <img src="{% static 'img/default-subproduct.png' %}" class="ingredient-icon" alt="{{ subproduct.name }}">
+              {% endif %}
+              <div class="ingredient-details">
+                <span class="ingredient-name">{{ subproduct.name }}</span>
+                <span class="ingredient-price">R$ {{ subproduct.price|floatformat:2 }}</span>
+              </div>
             </div>
+            {% endfor %}
           </div>
-          <div class="quantity-controls">
-            <button class="quantity-btn decrease">-</button>
-            <span class="quantity-value" id="subproduct-quantity-{{ subproduct.id }}">1</span>
-            <button class="quantity-btn increase">+</button>
-          </div>
-        </li>
-        {% endfor %}
-      </ul>
+        {% else %}
+          <ul class="ingredients-list">
+            {% for subproduct in product.subproducts.all %}
+            <li class="ingredient-item">
+              <div class="ingredient-info">
+                {% if subproduct.image %}
+                  <img src="{{ subproduct.image.url }}" class="ingredient-icon" alt="{{ subproduct.name }}">
+                {% else %}
+                  <img src="{% static 'img/default-subproduct.png' %}" class="ingredient-icon" alt="{{ subproduct.name }}">
+                {% endif %}
+                <div class="ingredient-details">
+                  <span class="ingredient-name">{{ subproduct.name }}</span>
+                  <span class="ingredient-price">R$ {{ subproduct.price|floatformat:2 }} por unidade</span>
+                </div>
+              </div>
+              <div class="quantity-controls">
+                <button class="quantity-btn decrease">-</button>
+                <span class="quantity-value" id="subproduct-quantity-{{ subproduct.id }}">1</span>
+                <button class="quantity-btn increase">+</button>
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
       {% endif %}
     </div>
     {% endfor %}
@@ -241,7 +272,7 @@ header h1 {
 <div class="order-summary">
   <div class="order-total" id="order-total">Total: R$ 0,00</div>
   <div class="action-buttons">
-    <button class="action-btn confirm-btn">Finalizar Pedido</button>
+    <button class="action-btn confirm-btn" data-cart-url="{% url 'cart' %}">Finalizar Pedido</button>
   </div>
 </div>
 
@@ -310,10 +341,8 @@ document.addEventListener('DOMContentLoaded', function() {
     if(contents[key]) contents[key].style.display = 'block';
   }
 
-  // Inicial renderização
   renderCarousel();
 
-  // Evento click no carrossel para trocar produto ativo
   document.querySelectorAll('.carousel-slot').forEach(slot => {
     slot.addEventListener('click', function(e) {
       const item = e.target.closest('.carousel-item');
@@ -324,7 +353,6 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Monta objeto de preços para produtos e subprodutos
   const prices = {};
   products.forEach(p => {
     prices['product-quantity-' + p.id] = p.price;
@@ -333,7 +361,6 @@ document.addEventListener('DOMContentLoaded', function() {
     prices['subproduct-quantity-' + sp.id] = sp.price;
   });
 
-  // Atualiza total do pedido
   function updateOrderTotal() {
     let total = 0;
     for (const id in prices) {
@@ -342,10 +369,16 @@ document.addEventListener('DOMContentLoaded', function() {
       const qty = parseInt(qtySpan.textContent);
       total += qty * prices[id];
     }
+    document.querySelectorAll('.drink-grid').forEach(grid => {
+      const selected = grid.querySelector('.drink-item.selected');
+      if (selected) {
+        const id = selected.dataset.subproductId;
+        total += subproducts[id].price;
+      }
+    });
     document.getElementById('order-total').textContent = `Total: R$ ${total.toFixed(2).replace('.', ',')}`;
   }
 
-  // Eventos dos botões de quantidade para produtos e subprodutos
   document.querySelectorAll('.quantity-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       const span = this.parentElement.querySelector('.quantity-value');
@@ -357,7 +390,31 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
+  document.querySelectorAll('.drink-grid').forEach(grid => {
+    // Seleciona o primeiro item por padrão
+    const firstItem = grid.querySelector('.drink-item');
+    if (firstItem && !grid.querySelector('.drink-item.selected')) {
+      firstItem.classList.add('selected');
+    }
+
+    grid.querySelectorAll('.drink-item').forEach(item => {
+      item.addEventListener('click', () => {
+        grid.querySelectorAll('.drink-item').forEach(i => i.classList.remove('selected'));
+        item.classList.add('selected');
+        updateOrderTotal();
+      });
+    });
+  });
+
+  // Atualiza o total inicial
   updateOrderTotal();
+
+  // Redirect to cart.html when "Finalizar Pedido" button is clicked
+const confirmButton = document.querySelector('.confirm-btn');
+confirmButton.addEventListener('click', function() {
+  const cartUrl = this.dataset.cartUrl; // Pega a URL do atributo data-cart-url
+  window.location.href = cartUrl;       // Redireciona para a URL correta do carrinho
+});
 });
 </script>
 </body>
