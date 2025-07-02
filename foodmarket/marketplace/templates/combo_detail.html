@@ -57,7 +57,6 @@ header h1 {
   transition: all 0.4s ease-in-out;
 }
 .carousel-item.active {
-
   opacity: 1;
   transform: scale(1.2);
   transition: all 0.4s ease-in-out;
@@ -93,15 +92,50 @@ header h1 {
   display: block;
   margin-top: 6px;
 }
+
+/* Lista de subprodutos */
+.ingredients-list {
+  list-style: none;
+  margin-top: 20px;
+  padding-left: 0;
+  border-top: 1px solid #ddd;
+  padding-top: 10px;
+}
+.ingredient-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+.ingredient-info {
+  display: flex;
+  align-items: center;
+}
+.ingredient-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-right: 12px;
+}
+.ingredient-details {
+  display: flex;
+  flex-direction: column;
+}
+.ingredient-name {
+  font-weight: 600;
+  color: #333;
+}
 .quantity-controls {
   display: flex;
   align-items: center;
   justify-content: center;
-  margin: 15px 0;
 }
 .quantity-btn {
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   background-color: #ff4d4d;
   color: white;
@@ -117,11 +151,11 @@ header h1 {
   background-color: #e63c3c;
 }
 .quantity-value {
-  min-width: 30px;
+  min-width: 25px;
   text-align: center;
   font-weight: 600;
   font-size: 1.1rem;
-  margin: 0 10px;
+  margin: 0 8px;
 }
 .order-summary {
   padding: 15px;
@@ -171,18 +205,34 @@ header h1 {
   <div class="product-content">
     {% for product in products %}
     <div id="product-{{ forloop.counter0 }}-content" {% if not forloop.first %}style="display:none;"{% endif %}>
-      <div class="product-header">
-        <h2>{{ product.name }}</h2>
-        <p>{{ product.description }}</p>
-        <span class="ingredient-price">R$ {{ product.price|floatformat:2 }}</span>
-      </div>
-      <div class="quantity-controls">
-        <button class="quantity-btn decrease">-</button>
-        <span class="quantity-value" id="product-quantity-{{ product.id }}">
-          {% if product.name == "Hambúrguer" or product.name == "Refrigerante" %}1{% else %}0{% endif %}
-        </span>
-        <button class="quantity-btn increase">+</button>
-      </div>
+ 
+
+     
+
+      {% if product.subproducts.exists %}
+      <ul class="ingredients-list">
+        {% for subproduct in product.subproducts.all %}
+        <li class="ingredient-item">
+          <div class="ingredient-info">
+            {% if subproduct.image %}
+              <img src="{{ subproduct.image.url }}" class="ingredient-icon" alt="{{ subproduct.name }}">
+            {% else %}
+              <img src="{% static 'img/default-subproduct.png' %}" class="ingredient-icon" alt="{{ subproduct.name }}">
+            {% endif %}
+            <div class="ingredient-details">
+              <span class="ingredient-name">{{ subproduct.name }}</span>
+              <span class="ingredient-price">R$ {{ subproduct.price|floatformat:2 }} por unidade</span>
+            </div>
+          </div>
+          <div class="quantity-controls">
+            <button class="quantity-btn decrease">-</button>
+            <span class="quantity-value" id="subproduct-quantity-{{ subproduct.id }}">1</span>
+            <button class="quantity-btn increase">+</button>
+          </div>
+        </li>
+        {% endfor %}
+      </ul>
+      {% endif %}
     </div>
     {% endfor %}
   </div>
@@ -208,6 +258,18 @@ document.addEventListener('DOMContentLoaded', function() {
       },
     {% endfor %}
   ];
+
+  const subproducts = {
+    {% for product in products %}
+      {% for sub in product.subproducts.all %}
+        "{{ sub.id }}": {
+          id: "{{ sub.id }}",
+          name: "{{ sub.name|escapejs }}",
+          price: {{ sub.price|floatformat:2 }}
+        },
+      {% endfor %}
+    {% endfor %}
+  };
 
   const slots = {
     left: document.getElementById('slot-left'),
@@ -248,10 +310,10 @@ document.addEventListener('DOMContentLoaded', function() {
     if(contents[key]) contents[key].style.display = 'block';
   }
 
-  // Initial render
+  // Inicial renderização
   renderCarousel();
 
-  // Handle click
+  // Evento click no carrossel para trocar produto ativo
   document.querySelectorAll('.carousel-slot').forEach(slot => {
     slot.addEventListener('click', function(e) {
       const item = e.target.closest('.carousel-item');
@@ -262,21 +324,28 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Quantity update
+  // Monta objeto de preços para produtos e subprodutos
   const prices = {};
   products.forEach(p => {
     prices['product-quantity-' + p.id] = p.price;
   });
+  Object.values(subproducts).forEach(sp => {
+    prices['subproduct-quantity-' + sp.id] = sp.price;
+  });
 
+  // Atualiza total do pedido
   function updateOrderTotal() {
     let total = 0;
     for (const id in prices) {
-      const qty = parseInt(document.getElementById(id).textContent);
+      const qtySpan = document.getElementById(id);
+      if (!qtySpan) continue;
+      const qty = parseInt(qtySpan.textContent);
       total += qty * prices[id];
     }
     document.getElementById('order-total').textContent = `Total: R$ ${total.toFixed(2).replace('.', ',')}`;
   }
 
+  // Eventos dos botões de quantidade para produtos e subprodutos
   document.querySelectorAll('.quantity-btn').forEach(btn => {
     btn.addEventListener('click', function() {
       const span = this.parentElement.querySelector('.quantity-value');
