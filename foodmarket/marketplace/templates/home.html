@@ -110,14 +110,18 @@ header h3 {
 
 .combo-slide {
   min-width: 100%;
+  height: 200px;
   position: relative;
+  overflow: hidden; /* esconde qualquer excesso */
 }
 
 .combo-slide img {
   width: 100%;
-  height: 180px;
-  object-fit: cover;
+  height: 100%;     /* para preencher todo o container verticalmente */
+  object-fit: contain; /* mostra a imagem inteira, sem corte */
   display: block;
+  margin: 0 auto;    /* centraliza horizontalmente */
+  background-color: transparent; /* transparente */
 }
 
 .combo-slide h4 {
@@ -125,11 +129,11 @@ header h3 {
   bottom: 10px;
   left: 10px;
   color: white;
-  background: rgba(0,0,0,0.5);
   padding: 4px 8px;
   border-radius: 4px;
   font-size: 1rem;
 }
+
 
 /* COMBOS GRID */
 .combos-container {
@@ -146,6 +150,11 @@ header h3 {
   box-shadow: 0 2px 6px rgba(0,0,0,0.1);
   overflow: hidden;
   transition: transform 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* centraliza horizontalmente */
+  padding: 8px; /* espaço interno para o texto */
+  text-align: center; /* centraliza texto */
 }
 
 .combo:active {
@@ -156,20 +165,39 @@ header h3 {
   width: 100%;
   height: 100px;
   object-fit: cover;
+  display: block; /* elimina espaços em branco embaixo da imagem */
+  border-radius: 12px 12px 0 0; /* arredonda só no topo */
 }
 
 .combo h4 {
-  font-size: 1rem;
+  font-size: 14px; /* um pouco maior para melhor leitura */
   color: var(--primary);
-  margin: 8px;
-  font-weight: 600;
+  margin: 8px 0 4px 0;
+  text-decoration: none; /* remove linha embaixo */
+  line-height: 1.2;
 }
 
 .combo p {
-  font-size: 0.9rem;
+  font-size: 12px; /* tamanho um pouco maior e legível */
   color: #555;
-  margin: 0 8px 8px;
+  margin: 0 0 8px 0;
+  text-decoration: none; /* remove linha embaixo */
+  line-height: 1.3;
 }
+
+.combo a {
+  text-decoration: none !important; /* tira sublinhado */
+  color: inherit;                    /* herda a cor do texto pai */
+  font-weight: normal !important;   /* remove negrito padrão do link */
+  cursor: pointer;                  /* mantém cursor de link */
+}
+
+.combo a:hover,
+.combo a:focus {
+  text-decoration: none !important; /* mantém sem sublinhado no hover/focus */
+  color: var(--primary);              /* muda cor no hover se quiser */
+}
+
 
 /* DESKTOP BLOCK */
 @media only screen and (min-width: 768px) {
