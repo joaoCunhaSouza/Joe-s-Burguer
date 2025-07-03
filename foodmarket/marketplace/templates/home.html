@@ -1,9 +1,11 @@
 <!DOCTYPE html>
 <html lang="pt-br">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
 <title>Joe's Burgers</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
 <style>
 :root {
   --primary: #ff4d4d;
@@ -52,6 +54,10 @@ header h3 {
   cursor: pointer;
   border: 2px solid var(--primary);
   transition: all 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2em;
 }
 
 .circle:active {
@@ -99,8 +105,8 @@ header h3 {
 /* CAROUSEL */
 .combo-carousel {
   width: 100%;
-
   position: relative;
+  overflow: hidden;
 }
 
 .combo-carousel-inner {
@@ -112,16 +118,16 @@ header h3 {
   min-width: 100%;
   height: 200px;
   position: relative;
-  overflow: hidden; /* esconde qualquer excesso */
+  overflow: hidden;
 }
 
 .combo-slide img {
   width: 100%;
-  height: 100%;     /* para preencher todo o container verticalmente */
-  object-fit: contain; /* mostra a imagem inteira, sem corte */
+  height: 100%;
+  object-fit: contain;
   display: block;
-  margin: 0 auto;    /* centraliza horizontalmente */
-  background-color: transparent; /* transparente */
+  margin: 0 auto;
+  background-color: transparent;
 }
 
 .combo-slide h4 {
@@ -133,7 +139,6 @@ header h3 {
   border-radius: 4px;
   font-size: 1rem;
 }
-
 
 /* COMBOS GRID */
 .combos-container {
@@ -152,9 +157,9 @@ header h3 {
   transition: transform 0.2s;
   display: flex;
   flex-direction: column;
-  align-items: center; /* centraliza horizontalmente */
-  padding: 8px; /* espaço interno para o texto */
-  text-align: center; /* centraliza texto */
+  align-items: center;
+  padding: 8px;
+  text-align: center;
 }
 
 .combo:active {
@@ -165,39 +170,72 @@ header h3 {
   width: 100%;
   height: 100px;
   object-fit: cover;
-  display: block; /* elimina espaços em branco embaixo da imagem */
-  border-radius: 12px 12px 0 0; /* arredonda só no topo */
+  display: block;
+  border-radius: 12px 12px 0 0;
 }
 
 .combo h4 {
-  font-size: 14px; /* um pouco maior para melhor leitura */
+  font-size: 14px;
   color: var(--primary);
   margin: 8px 0 4px 0;
-  text-decoration: none; /* remove linha embaixo */
   line-height: 1.2;
 }
 
 .combo p {
-  font-size: 12px; /* tamanho um pouco maior e legível */
+  font-size: 12px;
   color: #555;
   margin: 0 0 8px 0;
-  text-decoration: none; /* remove linha embaixo */
   line-height: 1.3;
 }
 
 .combo a {
-  text-decoration: none !important; /* tira sublinhado */
-  color: inherit;                    /* herda a cor do texto pai */
-  font-weight: normal !important;   /* remove negrito padrão do link */
-  cursor: pointer;                  /* mantém cursor de link */
+  text-decoration: none !important;
+  color: inherit;
+  font-weight: normal !important;
+  cursor: pointer;
 }
 
-.combo a:hover,
-.combo a:focus {
-  text-decoration: none !important; /* mantém sem sublinhado no hover/focus */
-  color: var(--primary);              /* muda cor no hover se quiser */
+.combo a:hover {
+  color: var(--primary);
 }
 
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #ddd;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 10px 0;
+  z-index: 999;
+}
+
+.nav-item {
+  position: relative;
+  font-size: 24px;
+  color: var(--primary);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.nav-item:active {
+  transform: scale(0.9);
+}
+
+.cart-count {
+  position: absolute;
+  top: -5px;
+  right: -10px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 12px;
+}
 
 /* DESKTOP BLOCK */
 @media only screen and (min-width: 768px) {
@@ -207,7 +245,7 @@ header h3 {
     padding: 50px;
     text-align: center;
     font-size: 24px;
-    color: #ff4d4d;
+    color: var(--primary);
     position: fixed;
     top: 0;
     left: 0;
@@ -221,6 +259,7 @@ header h3 {
   }
 }
 </style>
+
 <script>
 function toggleMenu() {
   var menu = document.getElementById('menu');
@@ -231,6 +270,7 @@ function toggleMenu() {
 let currentSlide = 0;
 function nextSlide() {
   const slides = document.querySelectorAll('.combo-slide');
+  if (slides.length === 0) return;
   currentSlide = (currentSlide + 1) % slides.length;
   document.querySelector('.combo-carousel-inner').style.transform = `translateX(-${currentSlide * 100}%)`;
 }
@@ -241,7 +281,11 @@ setInterval(nextSlide, 3000);
 <header>
   <h3>Joe's Burgers</h3>
   <div class="circle" onclick="toggleMenu();">
+    {% if request.user.is_authenticated %}
     {{request.user.first_name|slice:":1"|upper}}
+    {% else %}
+    <i class="fas fa-user"></i>
+    {% endif %}
     <div class="status"></div>
   </div>
 </header>
@@ -275,6 +319,19 @@ setInterval(nextSlide, 3000);
     </a>
   </div>
   {% endfor %}
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item" onclick="window.location.href='{% url 'home' %}'">
+    <i class="fas fa-home"></i>
+  </div>
+  <div class="nav-item" onclick="window.location.href='{% url 'cart' %}'">
+    <i class="fas fa-shopping-cart"></i>
+    {% if cart_items_count and cart_items_count > 0 %}
+    <span class="cart-count">{{ cart_items_count }}</span>
+    {% endif %}
+  </div>
 </div>
 </body>
 </html>

@@ -1,157 +1,86 @@
-<!DOCTYPE html>
-<html lang="pt-br">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Carrinho</title>
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Joe's Burgers - Carrinho{% endblock %}
+
+{% block style %}
 <style>
-/* Reset e base */
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Roboto', Arial, sans-serif;
+.cart-container {
+  max-width: 700px;
+  margin: 2rem 2rem;
+  padding: 1.5rem 1.5rem; /* padding horizontal para não encostar nas bordas */
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-body {
-  background: #f5f5f5;
-  color: #333;
-  line-height: 1.5;
-  padding: 15px;
-}
 
-/* Título */
-h2 {
-  text-align: center;
-  color: #ff4d4d;
-  font-size: 1.6rem;
-  margin-bottom: 20px;
-}
-
-/* Card do item */
-.cart-item {
-  background: white;
-  border-radius: 10px;
-  padding: 15px;
-  margin-bottom: 15px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  display: flex;
-  align-items: center;
-}
-
-.cart-item img {
-  width: 70px;
-  height: 70px;
-  object-fit: cover;
-  border-radius: 8px;
-  margin-right: 15px;
-}
-
-.cart-item-info {
-  flex: 1;
-}
-
-.cart-item-info h4 {
-  color: #333;
-  font-size: 1rem;
-  margin-bottom: 5px;
-}
-
-.cart-item-info p {
-  color: #666;
-  font-size: 0.9rem;
-}
-
-/* Total e botão */
-.cart-summary {
-  background: white;
-  border-radius: 10px;
-  padding: 15px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-  margin-top: 20px;
-}
-
-.cart-summary p {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #ff4d4d;
-  text-align: center;
-  margin-bottom: 15px;
-}
-
-.button-confirm {
-  width: 100%;
-  background: #ff4d4d;
-  color: white;
-  border: none;
-  padding: 14px;
-  border-radius: 8px;
-  font-size: 1rem;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-.button-confirm:active {
-  background: #e63c3c;
-}
-
-/* Aviso de funcionalidade */
-p.notice {
-  text-align: center;
-  color: #666;
-  margin-top: 30px;
-  font-size: 0.95rem;
-}
-
-/* Mobile otimizado */
-@media(min-width: 768px) {
-  body::before {
-    content: "Este sistema é otimizado apenas para dispositivos móveis. Acesse de um smartphone.";
-    display: block;
-    padding: 50px;
+  .cart-container h2 {
+    margin: 1rem 1rem;
+    padding:16px;
+    color: #333;
+    font-weight: 700;
+    font-size: 1.8rem;
     text-align: center;
-    font-size: 24px;
-    color: #f44336;
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: white;
-    z-index: 1000;
+    color: #ff4d4d
   }
-  body > *:not(:before) {
-    display: none !important;
+
+  ul {
+    list-style: none;
+    padding-left: 0;
   }
-}
+
+  ul li {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid #ddd;
+    font-size: 1.1rem;
+    color: #444;
+  }
+
+  ul li:last-child {
+    border-bottom: none;
+  }
+
+  .empty-cart-message {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #666;
+    margin: 2rem 0;
+  }
+
+  .back-to-home-btn {
+    display: inline-block;
+    background-color: #ff4d4d;
+    color: white;
+    text-decoration: none;
+    padding: 0.7rem 1.4rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+    margin: 0 auto;
+    display: block;
+    width: fit-content;
+  }
+
+  .back-to-home-btn:hover {
+    background-color: #e84343;
+  }
 </style>
-</head>
-<body>
+{% endblock %}
 
-<h2>Seu Carrinho</h2>
-
-{% if cart_items %}
-  {% for item in cart_items %}
-  <div class="cart-item">
-    <img src="{{ item.product.image.url }}" alt="{{ item.product.name }}">
-    <div class="cart-item-info">
-      <h4>{{ item.product.name }}</h4>
-      <p>Quantidade: {{ item.quantity }}</p>
-      <p>R$ {{ item.total_price|floatformat:2 }}</p>
-    </div>
-  </div>
-  {% endfor %}
-
-  <div class="cart-summary">
-    <p>Total: R$ {{ cart_total|floatformat:2 }}</p>
-    <form method="post" action="{% url 'finalize_order' %}">
-      {% csrf_token %}
-      <button type="submit" class="button-confirm">Finalizar Pedido</button>
-    </form>
-  </div>
-{% else %}
-  <p class="notice">Seu carrinho está vazio.</p>
-{% endif %}
-
-</body>
-</html>
+{% block content %}
+<div class="cart-container">
+    <h2>Seu Carrinho</h2>
+    {% if cart_items %}
+        <ul>
+            {% for item in cart_items %}
+            <li>{{ item.product.name }} - Quantidade: {{ item.quantity }} - Preço: R$ {{ item.price }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="empty-cart-message">Seu carrinho está vazio.</p>
+        <a href="{% url 'home' %}" class="back-to-home-btn">Voltar para a Loja</a>
+    {% endif %}
+</div>
+{% endblock %}

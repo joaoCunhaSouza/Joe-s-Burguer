@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from .models import Combo, CarouselImage, Product, SubProduct  # Importa seu novo model
+from .models import CartItem, Combo, CarouselImage, Product, SubProduct  # Importa seu novo model
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 import json
@@ -49,10 +49,18 @@ def register(request):
 @login_required
 def home(request):
     combos = Combo.objects.all()
-    carousel_images = CarouselImage.objects.all()  # Busca imagens do carrossel
+    carousel_images = CarouselImage.objects.all()
+
+    # Buscar todos os itens do carrinho deste usuário
+    cart_items = CartItem.objects.filter(user=request.user)
+
+    # Somar quantos itens no total (ex: 3 batatas + 2 refrigerantes = 5)
+    cart_items_count = sum(item.quantity for item in cart_items)
+
     return render(request, 'home.html', {
         'combos': combos,
-        'carousel_images': carousel_images  # Passa para o template
+        'carousel_images': carousel_images,
+        'cart_items_count': cart_items_count
     })
 
 @login_required

@@ -4,6 +4,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>{{ combo.name }}</title>
 <style>
 * {
@@ -116,6 +117,7 @@ header h1 {
   height: 40px;
   object-fit: cover;
   border-radius: 6px;
+  margin-right: 10px; /* Adicionado para espaçamento */
 }
 .ingredient-details {
   display: flex;
@@ -200,9 +202,11 @@ header h1 {
   padding: 10px;
   cursor: pointer;
   transition: border-color 0.3s, box-shadow 0.3s;
+  border: 1px solid #eee; /* Adicionado para consistência */
 }
 
 .drink-item.selected {
+  border-color: #ff4d4d; /* Alterado para destacar a borda */
   box-shadow: 0 0 6px #ff4d4d;
 }
 </style>
@@ -242,7 +246,7 @@ header h1 {
         {% else %}
           <ul class="ingredients-list">
             {% for subproduct in product.subproducts.all %}
-            <li class="ingredient-item">
+            <li class="ingredient-item" data-subproduct-id="{{ subproduct.id }}">
               <div class="ingredient-info">
                 {% if subproduct.image %}
                   <img src="{{ subproduct.image.url }}" class="ingredient-icon" alt="{{ subproduct.name }}">
@@ -256,7 +260,9 @@ header h1 {
               </div>
               <div class="quantity-controls">
                 <button class="quantity-btn decrease">-</button>
-                <span class="quantity-value" id="subproduct-quantity-{{ subproduct.id }}">1</span>
+                <span class="quantity-value" id="subproduct-quantity-{{ subproduct.id }}">
+                  {% if product.name == "Batata Frita" %}{% if forloop.first %}1{% else %}0{% endif %}{% else %}1{% endif %}
+                </span>
                 <button class="quantity-btn increase">+</button>
               </div>
             </li>
@@ -284,8 +290,8 @@ document.addEventListener('DOMContentLoaded', function() {
         index: {{ forloop.counter0 }},
         id: "{{ product.id }}",
         name: "{{ product.name|escapejs }}",
-        price: {{ product.price|floatformat:2 }},
-        img: "{{ product.image.url }}"
+        price: {{ product.price|default:0 }},
+        img: "{% if product.image %}{{ product.image.url }}{% endif %}"
       },
     {% endfor %}
   ];
@@ -296,7 +302,7 @@ document.addEventListener('DOMContentLoaded', function() {
         "{{ sub.id }}": {
           id: "{{ sub.id }}",
           name: "{{ sub.name|escapejs }}",
-          price: {{ sub.price|floatformat:2 }}
+          price: {{ sub.price|default:0 }}
         },
       {% endfor %}
     {% endfor %}
@@ -353,27 +359,25 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  const prices = {};
-  products.forEach(p => {
-    prices['product-quantity-' + p.id] = p.price;
-  });
-  Object.values(subproducts).forEach(sp => {
-    prices['subproduct-quantity-' + sp.id] = sp.price;
-  });
-
   function updateOrderTotal() {
-    let total = 0;
-    for (const id in prices) {
-      const qtySpan = document.getElementById(id);
-      if (!qtySpan) continue;
-      const qty = parseInt(qtySpan.textContent);
-      total += qty * prices[id];
-    }
+    let total = {{ combo.price|default:0|floatformat:2 }};
+
+    document.querySelectorAll('.ingredients-list .ingredient-item').forEach(item => {
+        const qtySpan = item.querySelector('.quantity-value');
+        const subproductId = item.dataset.subproductId;
+        if (qtySpan && subproductId && subproducts[subproductId]) {
+            const qty = parseInt(qtySpan.textContent) || 0;
+            total += qty * subproducts[subproductId].price;
+        }
+    });
+
     document.querySelectorAll('.drink-grid').forEach(grid => {
       const selected = grid.querySelector('.drink-item.selected');
       if (selected) {
         const id = selected.dataset.subproductId;
-        total += subproducts[id].price;
+        if (subproducts[id]) {
+            total += subproducts[id].price;
+        }
       }
     });
     document.getElementById('order-total').textContent = `Total: R$ ${total.toFixed(2).replace('.', ',')}`;
@@ -391,7 +395,6 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   document.querySelectorAll('.drink-grid').forEach(grid => {
-    // Seleciona o primeiro item por padrão
     const firstItem = grid.querySelector('.drink-item');
     if (firstItem && !grid.querySelector('.drink-item.selected')) {
       firstItem.classList.add('selected');
@@ -406,16 +409,58 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  // Atualiza o total inicial
   updateOrderTotal();
 
-  // Redirect to cart.html when "Finalizar Pedido" button is clicked
-const confirmButton = document.querySelector('.confirm-btn');
-confirmButton.addEventListener('click', function() {
-  const cartUrl = this.dataset.cartUrl; // Pega a URL do atributo data-cart-url
-  window.location.href = cartUrl;       // Redireciona para a URL correta do carrinho
-});
+  const confirmButton = document.querySelector('.confirm-btn');
+  confirmButton.addEventListener('click', async function() {
+    const selectedItems = {
+        products: {},
+        subproducts: {}
+    };
+
+    document.querySelectorAll('.ingredients-list .ingredient-item').forEach(item => {
+        const qty = parseInt(item.querySelector('.quantity-value').textContent);
+        if (qty > 0) {
+            const subproductId = item.dataset.subproductId;
+            selectedItems.subproducts[subproductId] = qty;
+        }
+    });
+
+    document.querySelectorAll('.drink-grid .drink-item.selected').forEach(item => {
+        const subproductId = item.dataset.subproductId;
+        selectedItems.subproducts[subproductId] = 1;
+    });
+    
+    // CORREÇÃO: Pega o comboId e o csrfToken dinamicamente do template
+    const comboId = {{ combo.id }};
+    const url = `/combo/${comboId}/add-to-cart/`;
+    const csrfToken = '{{ csrf_token }}';
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(selectedItems)
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+            window.location.href = "{% url 'cart' %}";
+        } else {
+            console.error('Erro ao adicionar ao carrinho:', data.message);
+            alert('Ocorreu um erro ao adicionar os itens ao carrinho. Tente novamente.');
+        }
+    } catch (error) {
+        console.error('Erro de rede:', error);
+        alert('Ocorreu um erro de comunicação. Verifique sua conexão e tente novamente.');
+    }
+  });
 });
 </script>
+
 </body>
 </html>
