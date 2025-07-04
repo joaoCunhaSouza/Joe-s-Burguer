@@ -1,0 +1,466 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>{{ combo.name }}</title>
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent;
+  font-family: 'Roboto', Arial, sans-serif;
+}
+body {
+  background-color: #f5f5f5;
+  color: #333;
+  line-height: 1.5;
+  overflow-x: hidden;
+}
+header {
+  background-color: #ff4d4d;
+  color: white;
+  padding: 16px 0;
+  text-align: center;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+}
+header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+.main-container {
+  width: 100%;
+  max-width: 100vw;
+}
+.carousel-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  margin: 20px 0;
+  padding: 0 10px;
+}
+.carousel-slot {
+  flex: 0 0 30%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100px;
+}
+.carousel-item {
+  text-align: center;
+  cursor: pointer;
+  opacity: 0.5;
+  transform: scale(0.8);
+  transition: all 0.4s ease-in-out;
+}
+.carousel-item.active {
+  opacity: 1;
+  transform: scale(1.2);
+  transition: all 0.4s ease-in-out;
+}
+.carousel-item img {
+  max-width: 70px;
+}
+.item-label {
+  margin-top: 5px;
+  font-size: 0.8rem;
+  color: #ff4d4d;
+  font-weight: 600;
+}
+.product-content {
+  padding: 0 15px;
+}
+.product-header {
+  text-align: center;
+  margin-bottom: 15px;
+}
+.product-header h2 {
+  font-size: 1.3rem;
+  color: #ff4d4d;
+}
+.product-header p {
+  color: #666;
+  font-size: 0.9rem;
+}
+.ingredient-price {
+  font-size: 1rem;
+  color: #ff4d4d;
+  font-weight: 600;
+  display: block;
+  margin-top: 6px;
+}
+.ingredients-list {
+  list-style: none;
+  margin-top: 20px;
+  padding-left: 0;
+  border-top: 1px solid #ddd;
+  padding-top: 10px;
+}
+.ingredient-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #eee;
+}
+.ingredient-info {
+  display: flex;
+  align-items: center;
+}
+.ingredient-icon {
+  width: 40px;
+  height: 40px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-right: 10px; /* Adicionado para espaçamento */
+}
+.ingredient-details {
+  display: flex;
+  flex-direction: column;
+}
+.ingredient-name {
+  font-weight: 600;
+  color: #333;
+}
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.quantity-btn {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #ff4d4d;
+  color: white;
+  border: none;
+  font-size: 1.1rem;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.quantity-btn:active {
+  background-color: #e63c3c;
+}
+.quantity-value {
+  min-width: 25px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+  margin: 0 8px;
+}
+.order-summary {
+  padding: 15px;
+  background-color: #f5f5f5;
+}
+.order-total {
+  background-color: white;
+  border-radius: 10px;
+  padding: 16px;
+  text-align: center;
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #ff4d4d;
+}
+.action-buttons {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+.action-btn {
+  flex: 1;
+  padding: 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  text-align: center;
+  border: none;
+  cursor: pointer;
+}
+.confirm-btn {
+  background-color: #ff4d4d;
+  color: white;
+}
+
+/* Estilo do grid do refrigerante */
+.drink-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 12px;
+  margin-top: 20px;
+}
+.drink-item {
+  background: white;
+  border-radius: 8px;
+  text-align: center;
+  padding: 10px;
+  cursor: pointer;
+  transition: border-color 0.3s, box-shadow 0.3s;
+  border: 1px solid #eee; /* Adicionado para consistência */
+}
+
+.drink-item.selected {
+  border-color: #ff4d4d; /* Alterado para destacar a borda */
+  box-shadow: 0 0 6px #ff4d4d;
+}
+</style>
+</head>
+<body>
+<header>
+  <h1>{{ combo.name }}</h1>
+</header>
+
+<div class="main-container">
+  <div class="carousel-container">
+    <div class="carousel-slot" id="slot-left"></div>
+    <div class="carousel-slot" id="slot-center"></div>
+    <div class="carousel-slot" id="slot-right"></div>
+  </div>
+
+  <div class="product-content">
+    {% for product in products %}
+    <div id="product-{{ forloop.counter0 }}-content" {% if not forloop.first %}style="display:none;"{% endif %}>
+      {% if product.subproducts.exists %}
+        {% if product.name == "Refrigerante" %}
+          <div class="drink-grid">
+            {% for subproduct in product.subproducts.all %}
+            <div class="drink-item {% if forloop.first %}selected{% endif %}" data-subproduct-id="{{ subproduct.id }}">
+              {% if subproduct.image %}
+                <img src="{{ subproduct.image.url }}" class="ingredient-icon" alt="{{ subproduct.name }}">
+              {% else %}
+                <img src="{% static 'img/default-subproduct.png' %}" class="ingredient-icon" alt="{{ subproduct.name }}">
+              {% endif %}
+              <div class="ingredient-details">
+                <span class="ingredient-name">{{ subproduct.name }}</span>
+                <span class="ingredient-price">R$ {{ subproduct.price|floatformat:2 }}</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <ul class="ingredients-list">
+            {% for subproduct in product.subproducts.all %}
+            <li class="ingredient-item" data-subproduct-id="{{ subproduct.id }}">
+              <div class="ingredient-info">
+                {% if subproduct.image %}
+                  <img src="{{ subproduct.image.url }}" class="ingredient-icon" alt="{{ subproduct.name }}">
+                {% else %}
+                  <img src="{% static 'img/default-subproduct.png' %}" class="ingredient-icon" alt="{{ subproduct.name }}">
+                {% endif %}
+                <div class="ingredient-details">
+                  <span class="ingredient-name">{{ subproduct.name }}</span>
+                  <span class="ingredient-price">R$ {{ subproduct.price|floatformat:2 }} por unidade</span>
+                </div>
+              </div>
+              <div class="quantity-controls">
+                <button class="quantity-btn decrease">-</button>
+                <span class="quantity-value" id="subproduct-quantity-{{ subproduct.id }}">
+                  {% if product.name == "Batata Frita" %}{% if forloop.first %}1{% else %}0{% endif %}{% else %}1{% endif %}
+                </span>
+                <button class="quantity-btn increase">+</button>
+              </div>
+            </li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<div class="order-summary">
+  <div class="order-total" id="order-total">Total: R$ 0,00</div>
+  <div class="action-buttons">
+    <button class="action-btn confirm-btn" data-cart-url="{% url 'cart' %}">Finalizar Pedido</button>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const products = [
+    {% for product in products %}
+      {
+        index: {{ forloop.counter0 }},
+        id: "{{ product.id }}",
+        name: "{{ product.name|escapejs }}",
+        price: {{ product.price|default:0 }},
+        img: "{% if product.image %}{{ product.image.url }}{% endif %}"
+      },
+    {% endfor %}
+  ];
+
+  const subproducts = {
+    {% for product in products %}
+      {% for sub in product.subproducts.all %}
+        "{{ sub.id }}": {
+          id: "{{ sub.id }}",
+          name: "{{ sub.name|escapejs }}",
+          price: {{ sub.price|default:0 }}
+        },
+      {% endfor %}
+    {% endfor %}
+  };
+
+  const slots = {
+    left: document.getElementById('slot-left'),
+    center: document.getElementById('slot-center'),
+    right: document.getElementById('slot-right')
+  };
+
+  const contents = {};
+  {% for product in products %}
+    contents['product-{{ forloop.counter0 }}'] = document.getElementById('product-{{ forloop.counter0 }}-content');
+  {% endfor %}
+
+  let activeIndex = 0;
+
+  function renderCarousel() {
+    const prev = products[activeIndex - 1];
+    const active = products[activeIndex];
+    const next = products[activeIndex + 1];
+
+    slots.left.innerHTML = prev ? createItem(prev, false) : '';
+    slots.center.innerHTML = createItem(active, true);
+    slots.right.innerHTML = next ? createItem(next, false) : '';
+
+    updateContent();
+  }
+
+  function createItem(product, isActive) {
+    return `
+      <div class="carousel-item ${isActive ? 'active' : ''}" data-index="${product.index}">
+        <img src="${product.img}" alt="${product.name}">
+        <div class="item-label">${product.name}</div>
+      </div>`;
+  }
+
+  function updateContent() {
+    Object.values(contents).forEach(div => div.style.display = 'none');
+    const key = 'product-' + activeIndex;
+    if(contents[key]) contents[key].style.display = 'block';
+  }
+
+  renderCarousel();
+
+  document.querySelectorAll('.carousel-slot').forEach(slot => {
+    slot.addEventListener('click', function(e) {
+      const item = e.target.closest('.carousel-item');
+      if (item) {
+        activeIndex = parseInt(item.dataset.index);
+        renderCarousel();
+      }
+    });
+  });
+
+  function updateOrderTotal() {
+    let total = {{ combo.price|default:0|floatformat:2 }};
+
+    document.querySelectorAll('.ingredients-list .ingredient-item').forEach(item => {
+        const qtySpan = item.querySelector('.quantity-value');
+        const subproductId = item.dataset.subproductId;
+        if (qtySpan && subproductId && subproducts[subproductId]) {
+            const qty = parseInt(qtySpan.textContent) || 0;
+            total += qty * subproducts[subproductId].price;
+        }
+    });
+
+    document.querySelectorAll('.drink-grid').forEach(grid => {
+      const selected = grid.querySelector('.drink-item.selected');
+      if (selected) {
+        const id = selected.dataset.subproductId;
+        if (subproducts[id]) {
+            total += subproducts[id].price;
+        }
+      }
+    });
+    document.getElementById('order-total').textContent = `Total: R$ ${total.toFixed(2).replace('.', ',')}`;
+  }
+
+  document.querySelectorAll('.quantity-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      const span = this.parentElement.querySelector('.quantity-value');
+      let qty = parseInt(span.textContent);
+      if (this.classList.contains('increase')) qty++;
+      else if (qty > 0) qty--;
+      span.textContent = qty;
+      updateOrderTotal();
+    });
+  });
+
+  document.querySelectorAll('.drink-grid').forEach(grid => {
+    const firstItem = grid.querySelector('.drink-item');
+    if (firstItem && !grid.querySelector('.drink-item.selected')) {
+      firstItem.classList.add('selected');
+    }
+
+    grid.querySelectorAll('.drink-item').forEach(item => {
+      item.addEventListener('click', () => {
+        grid.querySelectorAll('.drink-item').forEach(i => i.classList.remove('selected'));
+        item.classList.add('selected');
+        updateOrderTotal();
+      });
+    });
+  });
+
+  updateOrderTotal();
+
+  const confirmButton = document.querySelector('.confirm-btn');
+  confirmButton.addEventListener('click', async function() {
+    const selectedItems = {
+        products: {},
+        subproducts: {}
+    };
+
+    document.querySelectorAll('.ingredients-list .ingredient-item').forEach(item => {
+        const qty = parseInt(item.querySelector('.quantity-value').textContent);
+        if (qty > 0) {
+            const subproductId = item.dataset.subproductId;
+            selectedItems.subproducts[subproductId] = qty;
+        }
+    });
+
+    document.querySelectorAll('.drink-grid .drink-item.selected').forEach(item => {
+        const subproductId = item.dataset.subproductId;
+        selectedItems.subproducts[subproductId] = 1;
+    });
+    
+    // CORREÇÃO: Pega o comboId e o csrfToken dinamicamente do template
+    const comboId = {{ combo.id }};
+    const url = `/combo/${comboId}/add-to-cart/`;
+    const csrfToken = '{{ csrf_token }}';
+
+    try {
+        const response = await fetch(url, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify(selectedItems)
+        });
+
+        const data = await response.json();
+
+        if (data.status === 'success') {
+            window.location.href = "{% url 'cart' %}";
+        } else {
+            console.error('Erro ao adicionar ao carrinho:', data.message);
+            alert('Ocorreu um erro ao adicionar os itens ao carrinho. Tente novamente.');
+        }
+    } catch (error) {
+        console.error('Erro de rede:', error);
+        alert('Ocorreu um erro de comunicação. Verifique sua conexão e tente novamente.');
+    }
+  });
+});
+</script>
+
+</body>
+</html>

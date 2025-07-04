@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Joe's Burgers</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+<style>
+:root {
+  --primary: #ff4d4d;
+  --secondary: #ffccbc;
+  --text: #333;
+  --bg: #f5f5f5;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Roboto', Arial, sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+}
+
+/* HEADER */
+header {
+  background-color: var(--primary);
+  color: white;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+}
+
+header h3 {
+  font-size: 1.4rem;
+}
+
+.circle {
+  position: relative;
+  width: 40px;
+  height: 40px;
+  background: white;
+  color: var(--primary);
+  border-radius: 50%;
+  text-align: center;
+  line-height: 40px;
+  font-weight: bold;
+  cursor: pointer;
+  border: 2px solid var(--primary);
+  transition: all 0.2s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.2em;
+}
+
+.circle:active {
+  transform: scale(0.95);
+}
+
+.status {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background: #4caf50;
+  border: 2px solid white;
+  border-radius: 50%;
+}
+
+/* MENU */
+#menu {
+  background: white;
+  position: absolute;
+  right: 10px;
+  top: 60px;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  padding: 10px;
+  z-index: 100;
+  display: none;
+}
+
+#menu a {
+  display: block;
+  color: var(--primary);
+  text-decoration: none;
+  padding: 8px;
+  font-weight: 500;
+  border-radius: 4px;
+}
+
+#menu a:hover {
+  background: #f9f9f9;
+}
+
+/* CAROUSEL */
+.combo-carousel {
+  width: 100%;
+  position: relative;
+  overflow: hidden;
+}
+
+.combo-carousel-inner {
+  display: flex;
+  transition: transform 0.4s ease;
+}
+
+.combo-slide {
+  min-width: 100%;
+  height: 200px;
+  position: relative;
+  overflow: hidden;
+}
+
+.combo-slide img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  margin: 0 auto;
+  background-color: transparent;
+}
+
+.combo-slide h4 {
+  position: absolute;
+  bottom: 10px;
+  left: 10px;
+  color: white;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+/* COMBOS GRID */
+.combos-container {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  padding: 10px;
+}
+
+/* COMBO CARD */
+.combo {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  overflow: hidden;
+  transition: transform 0.2s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 8px;
+  text-align: center;
+}
+
+.combo:active {
+  transform: scale(0.97);
+}
+
+.combo img {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+  display: block;
+  border-radius: 12px 12px 0 0;
+}
+
+.combo h4 {
+  font-size: 14px;
+  color: var(--primary);
+  margin: 8px 0 4px 0;
+  line-height: 1.2;
+}
+
+.combo p {
+  font-size: 12px;
+  color: #555;
+  margin: 0 0 8px 0;
+  line-height: 1.3;
+}
+
+.combo a {
+  text-decoration: none !important;
+  color: inherit;
+  font-weight: normal !important;
+  cursor: pointer;
+}
+
+.combo a:hover {
+  color: var(--primary);
+}
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #ddd;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 10px 0;
+  z-index: 999;
+}
+
+.nav-item {
+  position: relative;
+  font-size: 24px;
+  color: var(--primary);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.nav-item:active {
+  transform: scale(0.9);
+}
+
+.cart-count {
+  position: absolute;
+  top: -5px;
+  right: -10px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  padding: 2px 6px;
+  font-size: 12px;
+}
+
+/* DESKTOP BLOCK */
+@media only screen and (min-width: 768px) {
+  body::before {
+    content: "Este sistema é otimizado para dispositivos móveis. Acesse de um smartphone.";
+    display: block;
+    padding: 50px;
+    text-align: center;
+    font-size: 24px;
+    color: var(--primary);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: white;
+    z-index: 1000;
+  }
+  body > *:not(:before) {
+    display: none !important;
+  }
+}
+</style>
+
+<script>
+function toggleMenu() {
+  var menu = document.getElementById('menu');
+  menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+}
+
+// Carousel logic
+let currentSlide = 0;
+function nextSlide() {
+  const slides = document.querySelectorAll('.combo-slide');
+  if (slides.length === 0) return;
+  currentSlide = (currentSlide + 1) % slides.length;
+  document.querySelector('.combo-carousel-inner').style.transform = `translateX(-${currentSlide * 100}%)`;
+}
+setInterval(nextSlide, 3000);
+</script>
+</head>
+<body>
+<header>
+  <h3>Joe's Burgers</h3>
+  <div class="circle" onclick="toggleMenu();">
+    {% if request.user.is_authenticated %}
+    {{request.user.first_name|slice:":1"|upper}}
+    {% else %}
+    <i class="fas fa-user"></i>
+    {% endif %}
+    <div class="status"></div>
+  </div>
+</header>
+
+<div id="menu">
+  <a href="{% url 'logout' %}">Sair</a>
+</div>
+
+<!-- CAROUSEL DE BANNERS -->
+<div class="combo-carousel">
+  <div class="combo-carousel-inner">
+    {% for image in carousel_images %}
+    <div class="combo-slide">
+      <img src="{{ image.image.url }}" alt="{{ image.alt_text }}">
+      {% if image.alt_text %}
+      <h4>{{ image.alt_text }}</h4>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+</div>
+
+<!-- GRID DE COMBOS -->
+<div class="combos-container">
+  {% for combo in combos %}
+  <div class="combo">
+    <a href="{% url 'combo_detail' combo.id %}">
+      <img src="{{combo.image.url}}" alt="{{combo.name}}">
+      <h4>{{combo.name}}</h4>
+      <p>R$ {{combo.price}}</p>
+    </a>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item" onclick="window.location.href='{% url 'home' %}'">
+    <i class="fas fa-home"></i>
+  </div>
+  <div class="nav-item" onclick="window.location.href='{% url 'cart' %}'">
+    <i class="fas fa-shopping-cart"></i>
+    {% if cart_items_count and cart_items_count > 0 %}
+    <span class="cart-count">{{ cart_items_count }}</span>
+    {% endif %}
+  </div>
+</div>
+</body>
+</html>

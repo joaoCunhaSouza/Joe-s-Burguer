@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Joe's Burgers - Carrinho{% endblock %}
+
+{% block style %}
+<style>
+.cart-container {
+  max-width: 700px;
+  margin: 2rem 2rem;
+  padding: 1.5rem 1.5rem; /* padding horizontal para não encostar nas bordas */
+  background-color: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+
+  .cart-container h2 {
+    margin: 1rem 1rem;
+    padding:16px;
+    color: #333;
+    font-weight: 700;
+    font-size: 1.8rem;
+    text-align: center;
+    color: #ff4d4d
+  }
+
+  ul {
+    list-style: none;
+    padding-left: 0;
+  }
+
+  ul li {
+    padding: 0.8rem 1rem;
+    border-bottom: 1px solid #ddd;
+    font-size: 1.1rem;
+    color: #444;
+  }
+
+  ul li:last-child {
+    border-bottom: none;
+  }
+
+  .empty-cart-message {
+    text-align: center;
+    font-size: 1.2rem;
+    color: #666;
+    margin: 2rem 0;
+  }
+
+  .back-to-home-btn {
+    display: inline-block;
+    background-color: #ff4d4d;
+    color: white;
+    text-decoration: none;
+    padding: 0.7rem 1.4rem;
+    border-radius: 8px;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+    margin: 0 auto;
+    display: block;
+    width: fit-content;
+  }
+
+  .back-to-home-btn:hover {
+    background-color: #e84343;
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="cart-container">
+    <h2>Seu Carrinho</h2>
+    {% if cart_items %}
+        <ul>
+            {% for item in cart_items %}
+            <li>{{ item.product.name }} - Quantidade: {{ item.quantity }} - Preço: R$ {{ item.price }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p class="empty-cart-message">Seu carrinho está vazio.</p>
+        <a href="{% url 'home' %}" class="back-to-home-btn">Voltar para a Loja</a>
+    {% endif %}
+</div>
+{% endblock %}
