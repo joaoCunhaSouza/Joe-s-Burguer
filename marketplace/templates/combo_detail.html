@@ -359,8 +359,8 @@ document.addEventListener('DOMContentLoaded', function() {
     });
   });
 
-  function updateOrderTotal() {
-    let total = {{ combo.price|default:0|floatformat:2 }};
+function updateOrderTotal() {
+    let total = 0;
 
     document.querySelectorAll('.ingredients-list .ingredient-item').forEach(item => {
         const qtySpan = item.querySelector('.quantity-value');
@@ -380,8 +380,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
       }
     });
+
     document.getElementById('order-total').textContent = `Total: R$ ${total.toFixed(2).replace('.', ',')}`;
-  }
+}
+
 
   document.querySelectorAll('.quantity-btn').forEach(btn => {
     btn.addEventListener('click', function() {
