@@ -116,12 +116,12 @@ header h1 {
   width: 40px;
   height: 40px;
   object-fit: cover;
-  border-radius: 6px;
-  margin-right: 10px; /* Adicionado para espaçamento */
+  border-radius: 6px;/* Adicionado para espaçamento */
 }
 .ingredient-details {
   display: flex;
   flex-direction: column;
+  margin-top:15px;
 }
 .ingredient-name {
   font-weight: 600;
@@ -198,11 +198,15 @@ header h1 {
 .drink-item {
   background: white;
   border-radius: 8px;
-  text-align: center;
   padding: 10px;
   cursor: pointer;
   transition: border-color 0.3s, box-shadow 0.3s;
-  border: 1px solid #eee; /* Adicionado para consistência */
+  border: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  align-items: center; /* Centraliza horizontalmente */
+  justify-content: center; /* Opcional: centraliza verticalmente se tiver altura definida */
+  text-align: center; /* Mantém o texto centralizado */
 }
 
 .drink-item.selected {

@@ -27,7 +27,10 @@ DEBUG = True
 
 ALLOWED_HOSTS = [
     "joe-s-burguer.onrender.com",
+    "127.0.0.1",
+    "localhost",
 ]
+
 
 
 
@@ -141,4 +144,3 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-SECRET_KEY = os.environ.get('SECRET_KEY')
