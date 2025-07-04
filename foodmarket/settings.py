@@ -136,6 +136,6 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
+SECRET_KEY = os.environ.get('SECRET_KEY')
