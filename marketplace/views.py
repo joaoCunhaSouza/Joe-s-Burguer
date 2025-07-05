@@ -130,19 +130,37 @@ def cart(request):
         line_total = unit_price * item.quantity
         cart_total += line_total
 
-        # Monta lista de ingredientes do combo
         ingredientes = []
-        # Para cada produto do combo
         for product in item.combo.products.all():
-            # Para cada subproduto (ingrediente) desse produto
-            for sub in product.subproducts.all():
-                qty = 1  # padrão é 1
-                if item.customization and str(sub.id) in item.customization:
-                    qty = item.customization[str(sub.id)]
-                ingredientes.append({
-                    'name': sub.name,
-                    'removed': qty == 0
-                })
+            if product.name == "Refrigerante":
+                # Só mostra o refrigerante selecionado
+                for sub in product.subproducts.all():
+                    qty = 0
+                    if item.customization and str(sub.id) in item.customization:
+                        qty = item.customization[str(sub.id)]
+                    if qty == 1:
+                        ingredientes.append({
+                            'name': sub.name,
+                            'removed': False
+                        })
+            else:
+                for sub in product.subproducts.all():
+                    padrao = 1
+                    if product.name == "Batata Frita":
+                        padrao = 0 if sub.name != product.name else 1
+                    qty = padrao
+                    if item.customization and str(sub.id) in item.customization:
+                        qty = item.customization[str(sub.id)]
+                    if qty == 0:
+                        ingredientes.append({
+                            'name': sub.name,
+                            'removed': True
+                        })
+                    elif qty >= 1:
+                        ingredientes.append({
+                            'name': sub.name,
+                            'removed': False
+                        })
         processed_items.append({
             'combo_id': item.combo.id,
             'combo_image_url': item.combo.image.url if item.combo.image else '',
