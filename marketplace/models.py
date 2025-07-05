@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.shortcuts import render
 
 class CarouselImage(models.Model):
     image = models.ImageField(upload_to='carousel/')
@@ -61,6 +62,7 @@ class CartItem(models.Model):
     )
     quantity = models.PositiveIntegerField(default=1)
     date_added = models.DateTimeField(auto_now_add=True)
+    customization = models.JSONField(default=dict, blank=True, null=True)  # Campo de customização
 
     def __str__(self):
         if self.combo:
@@ -81,3 +83,39 @@ class CartItem(models.Model):
             return self.subproduct.price * self.quantity
         return 0
     
+    @staticmethod
+    def calculate_custom_total(combo, customization):
+        """
+        Calcula o preço total do combo considerando customizações (extras, subprodutos).
+        customization: dict {subproduct_id: quantidade}
+        """
+        from .models import SubProduct
+        total = float(combo.price)
+        if customization:
+            for sub_id, qty in customization.items():
+                try:
+                    sub = SubProduct.objects.get(id=sub_id)
+                    # O mínimo padrão é 1 (exceto batata extra, pode ser 0)
+                    min_qty = 1
+                    if sub.product.name == "Batata Frita":
+                        min_qty = 0
+                    if qty > min_qty:
+                        total += (qty - min_qty) * float(sub.price)
+                    elif sub.product.name == "Refrigerante":
+                        total += float(sub.price)  # sempre soma o preço do refrigerante escolhido
+                except SubProduct.DoesNotExist:
+                    continue
+        return total
+    
+def cart_view(request):
+    cart_items = CartItem.objects.filter(user=request.user).select_related('combo', 'product', 'subproduct')
+
+    # Calcular total do carrinho
+    cart_total = sum(item.get_total_price for item in cart_items)
+
+    context = {
+        'cart_items': cart_items,
+        'cart_total': cart_total,
+        'cart_items_count': sum(item.quantity for item in cart_items),
+    }
+    return render(request, 'cart.html', context)

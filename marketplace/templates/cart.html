@@ -7,65 +7,200 @@
 <style>
 .cart-container {
   max-width: 700px;
-  margin: 2rem 2rem;
-  padding: 1.5rem 1.5rem; /* padding horizontal para não encostar nas bordas */
+  margin: 2rem 2rem 2rem 2rem;
+  padding: 1.5rem 1.5rem;
   background-color: #fff;
-  border-radius: 12px;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+  border-radius: 14px;
+  box-shadow: 0 4px 14px rgba(0,0,0,0.10);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  padding-bottom: 120px; /* altura da cart-bottom-bar + bottom nav */
 }
-
-
-  .cart-container h2 {
-    margin: 1rem 1rem;
-    padding:16px;
-    color: #333;
-    font-weight: 700;
-    font-size: 1.8rem;
-    text-align: center;
-    color: #ff4d4d
+.cart-container h2 {
+  margin: 1rem 1rem;
+  padding: 16px 0 8px 0;
+  color: #ff4d4d;
+  font-weight: 800;
+  font-size: 1.8rem;
+  text-align: center;
+  letter-spacing: 1px;
+}
+.cart-list {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.cart-item {
+  display: flex;
+  align-items: center;
+  gap: 32px;
+  padding: 1.1rem 1.5rem;
+  border-bottom: 1px solid #ddd;
+  background: #fff;
+  border-radius: 14px;
+  margin-bottom: 1.2rem;
+  width: 100%;
+  max-width: 520px;
+  box-sizing: border-box;
+}
+.cart-item:last-child {
+  border-bottom: none;
+}
+.cart-combo-img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 12px;
+  background: #f5f5f5;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  border: 2px solid #ff4d4d22;
+  margin-right: 18px;
+}
+.cart-item-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+.cart-item-title, .cart-qty-controls, .cart-item-price, .cart-item-total {
+  width: 100%;
+  text-align: left;
+}
+.cart-qty-controls {
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin: 6px 0 2px 0;
+}
+.qty-btn-group {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+.qty-btn {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: #ff4d4d;
+  color: #fff;
+  border: none;
+  font-size: 1.2rem;
+  font-weight: bold;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+  box-shadow: 0 1px 4px #ff4d4d22;
+}
+.qty-btn.remove {
+  background: #ff4d4d;
+  margin-left: 2.25rem;
+}
+.qty-btn:hover {
+  background: #ff4d4d;
+}
+.cart-qty-value {
+  min-width: 28px;
+  text-align: center;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #222;
+}
+.cart-item-price {
+  color: #666;
+  font-size: 1.05rem;
+}
+.cart-item-total {
+  color: #ff4d4d;
+  font-size: 1.13rem;
+  font-weight: 700;
+}
+.cart-total {
+  text-align: center;
+  font-size: 1.22rem;
+  font-weight: 800;
+  color: #ff4d4d;
+  margin-top: 2.1rem;
+  margin-bottom: 1.1rem;
+  letter-spacing: 1px;
+}
+.empty-cart-message {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #666;
+  margin: 2.2rem 0 1.2rem 0;
+}
+.cart-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  margin-top: 2.2rem;
+}
+.cart-btn {
+  display: block;
+  background-color: #ff4d4d;
+  color: white;
+  text-decoration: none;
+  padding: 0.9rem 1.4rem;
+  border-radius: 10px;
+  font-weight: 700;
+  font-size: 1.1rem;
+  text-align: center;
+  transition: background-color 0.3s;
+  box-shadow: 0 2px 8px #ff4d4d22;
+  margin: 0 auto;
+  width: 100%;
+  max-width: 350px;
+}
+.cart-btn.finalizar {
+  background-color: #ff4d4d;
+  margin-top: 1.2rem;
+}
+.cart-btn.finalizar:hover {
+  background-color: #ff4d4d;
+}
+.cart-bottom-bar {
+  position: fixed;
+  left: 0;
+  bottom: 49px; /* altura da bottom nav, ajuste se necessário */
+  width: 100vw;
+  background: #fff;
+  box-shadow: 0 -2px 12px #ff4d4d22;
+  padding: 1.1rem 0.5rem 1.1rem 0.5rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  z-index: 100;
+}
+.cart-total {
+  margin: 0 0 2rem 0;
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #ff4d4d;
+  letter-spacing: 1px;
+}
+.cart-bottom-bar .cart-btn.finalizar {
+  margin: 0;
+  max-width: 350px;
+}
+.cart-actions { display: none; }
+@media (max-width: 600px) {
+  .cart-container {
+    max-width: 98vw;
+    padding: 1.1rem 0.1rem 1.1rem 0.1rem;
   }
-
-  ul {
-    list-style: none;
-    padding-left: 0;
+  .cart-combo-img {
+    width: 70px;
+    height: 70px;
   }
-
-  ul li {
-    padding: 0.8rem 1rem;
-    border-bottom: 1px solid #ddd;
-    font-size: 1.1rem;
-    color: #444;
+  .cart-bottom-bar {
+    padding: 0.7rem 0.1rem 0.7rem 0.1rem;
   }
-
-  ul li:last-child {
-    border-bottom: none;
-  }
-
-  .empty-cart-message {
-    text-align: center;
-    font-size: 1.2rem;
-    color: #666;
-    margin: 2rem 0;
-  }
-
-  .back-to-home-btn {
-    display: inline-block;
-    background-color: #ff4d4d;
-    color: white;
-    text-decoration: none;
-    padding: 0.7rem 1.4rem;
-    border-radius: 8px;
-    font-weight: 600;
-    transition: background-color 0.3s ease;
-    margin: 0 auto;
-    display: block;
-    width: fit-content;
-  }
-
-  .back-to-home-btn:hover {
-    background-color: #e84343;
-  }
+}
 </style>
 {% endblock %}
 
@@ -73,14 +208,61 @@
 <div class="cart-container">
     <h2>Seu Carrinho</h2>
     {% if cart_items %}
-        <ul>
+        <ul class="cart-list">
             {% for item in cart_items %}
-            <li>{{ item.product.name }} - Quantidade: {{ item.quantity }} - Preço: R$ {{ item.price }}</li>
+            <li class="cart-item">
+                {% if item.combo_image_url %}
+                  <img src="{{ item.combo_image_url }}" alt="{{ item.name }}" class="cart-combo-img">
+                {% endif %}
+                <div class="cart-item-info">
+                  <span class="cart-item-title">{{ item.name }}</span>
+                  <div class="cart-qty-controls">
+                    <form method="post" action="{% url 'update_cart_item' %}" class="update-qty-form" data-item-id="{{ item.cartitem_id }}">
+                      {% csrf_token %}
+                      <div class="qty-btn-group">
+                        <button type="button" class="qty-btn decrease" data-action="decrease">-</button>
+                        <span class="cart-qty-value">{{ item.quantity }}</span>
+                        <button type="button" class="qty-btn increase" data-action="increase">+</button>
+                        <button type="button" class="qty-btn remove" data-action="remove" title="Remover combo">🗑</button>
+                      </div>
+                    </form>
+                  </div>
+                  <span class="cart-item-price">Preço unitário: R$ {{ item.unit_price|floatformat:2 }}</span>
+                  <span class="cart-item-total">Subtotal: R$ {{ item.line_total|floatformat:2 }}</span>
+                </div>
+            </li>
             {% endfor %}
         </ul>
+        <div class="cart-bottom-bar">
+          <div class="cart-total">Total: R$ {{ cart_total|floatformat:2 }}</div>
+          <a href="{% url 'finalizar_pedido' %}" class="cart-btn finalizar">Finalizar Pedido</a>
+        </div>
     {% else %}
         <p class="empty-cart-message">Seu carrinho está vazio.</p>
-        <a href="{% url 'home' %}" class="back-to-home-btn">Voltar para a Loja</a>
+        <a href="{% url 'home' %}" class="cart-btn">Voltar para a Loja</a>
     {% endif %}
 </div>
+<script>
+document.querySelectorAll('.qty-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    const form = this.closest('.update-qty-form');
+    const itemId = form.getAttribute('data-item-id');
+    const action = this.getAttribute('data-action');
+    fetch('{% url "update_cart_item" %}', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-CSRFToken': form.querySelector('[name=csrfmiddlewaretoken]').value
+      },
+      body: JSON.stringify({ item_id: itemId, action: action })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.status === 'success' || data.status === 'removed') {
+        window.location.reload();
+      }
+    });
+  });
+});
+</script>
 {% endblock %}

@@ -1,11 +1,14 @@
+from django.http import JsonResponse
+from .models import CarouselImage, CartItem, Combo, Product, SubProduct # Make sure all models are imported
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
-from .models import CartItem, Combo, CarouselImage, Product, SubProduct  # Importa seu novo model
-from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 import json
+from django.db.models import F, Sum
+
+# ... (suas outras views como login, register, etc. permanecem as mesmas)
 
 def change_password(request):
     return render(request, 'change_password.html')
@@ -50,13 +53,7 @@ def register(request):
 def home(request):
     combos = Combo.objects.all()
     carousel_images = CarouselImage.objects.all()
-
-    # Buscar todos os itens do carrinho deste usuário
-    cart_items = CartItem.objects.filter(user=request.user)
-
-    # Somar quantos itens no total (ex: 3 batatas + 2 refrigerantes = 5)
-    cart_items_count = sum(item.quantity for item in cart_items)
-
+    cart_items_count = sum(item.quantity for item in CartItem.objects.filter(user=request.user))
     return render(request, 'home.html', {
         'combos': combos,
         'carousel_images': carousel_images,
@@ -72,100 +69,161 @@ def combo_detail(request, combo_id):
         'products': products
     })
 
-@login_required
-def cart(request):
-    cart_session = request.session.get('cart', {'products': {}, 'subproducts': {}})
-    cart_items = []
-    cart_total = 0
-
-    # Produtos principais
-    for prod_id, qty in cart_session.get('products', {}).items():
-        product = get_object_or_404(Product, pk=prod_id)
-        total_price = product.price * qty
-        cart_items.append({
-            'product': product,
-            'quantity': qty,
-            'total_price': total_price
-        })
-        cart_total += total_price
-
-    # Subprodutos
-    for sub_id, qty in cart_session.get('subproducts', {}).items():
-        sub = get_object_or_404(SubProduct, pk=sub_id)
-        total_price = sub.price * qty
-        cart_items.append({
-            'product': sub,  # Para simplificar template
-            'quantity': qty,
-            'total_price': total_price
-        })
-        cart_total += total_price
-
-    return render(request, 'cart.html', {
-        'cart_items': cart_items,
-        'cart_total': cart_total
-    })
-
-  
 
 @login_required
 @require_POST
 def add_to_cart(request, combo_id):
-    from .models import CartItem, Product, SubProduct  # Importe seus models
-
-    print("POST recebido:", request.POST)
-
     try:
-        data = json.loads(request.POST.get('selected_items', '{}'))
+        data = json.loads(request.body)
         combo = get_object_or_404(Combo, pk=combo_id)
 
-        # Limpar itens existentes do carrinho para este combo
-        CartItem.objects.filter(user=request.user, combo=combo).delete()
+        # Serializa a customização para comparação
+        customization = data.get('subproducts', {})
 
-        created_items = []
+        # Procura por um CartItem com a mesma customização
+        cart_item = CartItem.objects.filter(
+            user=request.user,
+            combo=combo,
+            product=None,
+            subproduct=None,
+            customization=customization
+        ).first()
 
-        # Adicionar produtos principais
-        for product_id, quantity in data.get('products', {}).items():
-            product = get_object_or_404(Product, pk=product_id)
-            item = CartItem.objects.create(
+        if cart_item:
+            cart_item.quantity = F('quantity') + 1
+            cart_item.save()
+            cart_item.refresh_from_db()
+        else:
+            cart_item = CartItem.objects.create(
                 user=request.user,
                 combo=combo,
-                product=product,
-                quantity=quantity
+                product=None,
+                subproduct=None,
+                quantity=1,
+                customization=customization
             )
-            created_items.append({
-                'type': 'product',
-                'id': product.id,
-                'name': product.name,
-                'quantity': quantity
-            })
-
-        # Adicionar subprodutos
-        for subproduct_id, quantity in data.get('subproducts', {}).items():
-            subproduct = get_object_or_404(SubProduct, pk=subproduct_id)
-            item = CartItem.objects.create(
-                user=request.user,
-                combo=combo,
-                subproduct=subproduct,
-                quantity=quantity
-            )
-            created_items.append({
-                'type': 'subproduct',
-                'id': subproduct.id,
-                'name': subproduct.name,
-                'quantity': quantity
-            })
-
-        print("Itens adicionados ao carrinho:", created_items)
 
         return JsonResponse({
             'status': 'success',
-            'message': 'Itens adicionados ao carrinho.',
-            'items': created_items
+            'message': 'Combo adicionado ao carrinho.',
+            'quantity': cart_item.quantity
         })
 
     except Exception as e:
-        print("Erro ao adicionar ao carrinho:", str(e))
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
+@login_required
+def cart(request):
+    cart_items_queryset = (
+        CartItem.objects.filter(user=request.user, combo__isnull=False, product=None, subproduct=None)
+        .select_related('combo')
+    )
 
+    processed_items = []
+    cart_total = 0
+
+    for item in cart_items_queryset:
+        # Calcula o preço considerando customização
+        unit_price = CartItem.calculate_custom_total(item.combo, item.customization)
+        line_total = unit_price * item.quantity
+        cart_total += line_total
+        # Exibe detalhes da customização
+        custom_desc = []
+        if item.customization:
+            from .models import SubProduct
+            for sub_id, qty in item.customization.items():
+                try:
+                    sub = SubProduct.objects.get(id=sub_id)
+                    custom_desc.append(f"{sub.name}: {qty}")
+                except SubProduct.DoesNotExist:
+                    continue
+        processed_items.append({
+            'combo_id': item.combo.id,
+            'combo_image_url': item.combo.image.url if item.combo.image else '',
+            'name': item.combo.name + (f" ({', '.join(custom_desc)})" if custom_desc else ''),
+            'quantity': item.quantity,
+            'unit_price': unit_price,
+            'line_total': line_total,
+            'cartitem_id': item.id,
+        })
+
+    return render(request, 'cart.html', {
+        'cart_items': processed_items,
+        'cart_total': cart_total
+    })
+
+
+@login_required
+@require_POST
+def update_cart_item(request):
+    try:
+        data = json.loads(request.body)
+        item_id = data.get('item_id')
+        action = data.get('action') # 'increase', 'decrease', or 'remove'
+
+        cart_item = get_object_or_404(CartItem, id=item_id, user=request.user, product=None, subproduct=None)
+
+        if action == 'increase':
+            cart_item.quantity = F('quantity') + 1
+            cart_item.save()
+            cart_item.refresh_from_db()
+            status = 'success'
+        elif action == 'decrease':
+            if cart_item.quantity > 1:
+                cart_item.quantity = F('quantity') - 1
+                cart_item.save()
+                cart_item.refresh_from_db()
+                status = 'success'
+            else:
+                cart_item.delete()
+                status = 'removed'
+        elif action == 'remove':
+            cart_item.delete()
+            status = 'removed'
+        else:
+            return JsonResponse({'status': 'error', 'message': 'Invalid action'}, status=400)
+
+        # Recalcular total do carrinho
+        cart_total = sum(item.combo.price * item.quantity for item in CartItem.objects.filter(user=request.user, combo__isnull=False, product=None, subproduct=None))
+
+        return JsonResponse({
+            'status': status,
+            'new_quantity': cart_item.quantity if status == 'success' else 0,
+            'cart_total': f'R$ {cart_total:,.2f}'.replace('.', ','),
+        })
+
+    except CartItem.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Item do carrinho não encontrado.'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+def _get_cart_totals_and_count(user):
+    """Helper function to calculate total cart value and item count for a user."""
+    cart_items = CartItem.objects.filter(user=user).select_related('product', 'subproduct')
+    total = 0
+    count = 0
+    for item in cart_items:
+        price = 0
+        if item.product:
+            price = item.product.price
+        elif item.subproduct:
+            price = item.subproduct.price
+        
+        total += item.quantity * price
+        count += item.quantity
+    return total, count
+
+def cart_view(request):
+    # Buscar só os CartItems que têm combo definido para este usuário
+    cart_items = CartItem.objects.filter(user=request.user, combo__isnull=False).select_related('combo')
+    cart_total = sum(item.get_total_price for item in cart_items)
+    cart_items_count = sum(item.quantity for item in cart_items)
+
+    context = {
+        'cart_items': cart_items,
+        'cart_total': cart_total,
+        'cart_items_count': cart_items_count,
+    }
+    return render(request, 'cart.html', context)

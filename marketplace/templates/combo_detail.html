@@ -379,23 +379,34 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
 function updateOrderTotal() {
-    let total = 0;
+    let total = parseFloat("{{ combo.price|floatformat:'2' }}"); // Sempre começa com o preço base do combo
 
+    // Soma apenas os extras acima do mínimo
     document.querySelectorAll('.ingredients-list .ingredient-item').forEach(item => {
         const qtySpan = item.querySelector('.quantity-value');
         const subproductId = item.dataset.subproductId;
         if (qtySpan && subproductId && subproducts[subproductId]) {
+            let minQty = 1;
+            // Se for batata frita e não for o primeiro, mínimo é 0
+            const productName = item.closest('.ingredients-list').previousElementSibling ? item.closest('.ingredients-list').previousElementSibling.textContent : '';
+            if (productName.includes('Batata Frita')) {
+                minQty = (item === item.parentElement.firstElementChild) ? 1 : 0;
+            }
             const qty = parseInt(qtySpan.textContent) || 0;
-            total += qty * subproducts[subproductId].price;
+            if (qty > minQty) {
+                total += (qty - minQty) * parseFloat(subproducts[subproductId].price);
+            }
+            // Nunca subtrai do total se qty < minQty
         }
     });
 
+    // Soma apenas 1 refrigerante selecionado (o preço do selecionado)
     document.querySelectorAll('.drink-grid').forEach(grid => {
       const selected = grid.querySelector('.drink-item.selected');
       if (selected) {
         const id = selected.dataset.subproductId;
         if (subproducts[id]) {
-            total += subproducts[id].price;
+            total += parseFloat(subproducts[id].price);
         }
       }
     });
@@ -408,8 +419,14 @@ function updateOrderTotal() {
     btn.addEventListener('click', function() {
       const span = this.parentElement.querySelector('.quantity-value');
       let qty = parseInt(span.textContent);
+      let minQty = 1;
+      // Se for batata frita e não for o primeiro, mínimo é 0
+      const item = this.closest('.ingredient-item');
+      if (item && item.closest('.ingredients-list').previousElementSibling && item.closest('.ingredients-list').previousElementSibling.textContent.includes('Batata Frita')) {
+        minQty = (item === item.parentElement.firstElementChild) ? 1 : 0;
+      }
       if (this.classList.contains('increase')) qty++;
-      else if (qty > 0) qty--;
+      else if (qty > minQty) qty--;
       span.textContent = qty;
       updateOrderTotal();
     });
