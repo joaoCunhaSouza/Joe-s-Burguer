@@ -123,29 +123,35 @@ def cart(request):
     processed_items = []
     cart_total = 0
 
+    from .models import SubProduct, Product
+
     for item in cart_items_queryset:
-        # Calcula o preço considerando customização
         unit_price = CartItem.calculate_custom_total(item.combo, item.customization)
         line_total = unit_price * item.quantity
         cart_total += line_total
-        # Exibe detalhes da customização
-        custom_desc = []
-        if item.customization:
-            from .models import SubProduct
-            for sub_id, qty in item.customization.items():
-                try:
-                    sub = SubProduct.objects.get(id=sub_id)
-                    custom_desc.append(f"{sub.name}: {qty}")
-                except SubProduct.DoesNotExist:
-                    continue
+
+        # Monta lista de ingredientes do combo
+        ingredientes = []
+        # Para cada produto do combo
+        for product in item.combo.products.all():
+            # Para cada subproduto (ingrediente) desse produto
+            for sub in product.subproducts.all():
+                qty = 1  # padrão é 1
+                if item.customization and str(sub.id) in item.customization:
+                    qty = item.customization[str(sub.id)]
+                ingredientes.append({
+                    'name': sub.name,
+                    'removed': qty == 0
+                })
         processed_items.append({
             'combo_id': item.combo.id,
             'combo_image_url': item.combo.image.url if item.combo.image else '',
-            'name': item.combo.name + (f" ({', '.join(custom_desc)})" if custom_desc else ''),
+            'name': item.combo.name,
             'quantity': item.quantity,
             'unit_price': unit_price,
             'line_total': line_total,
             'cartitem_id': item.id,
+            'ingredientes': ingredientes,
         })
 
     return render(request, 'cart.html', {

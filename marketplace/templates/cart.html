@@ -7,13 +7,15 @@
 <style>
 .cart-container {
   max-width: 700px;
-  margin: 2rem 2rem 2rem 2rem;
-  padding: 1.5rem 1.5rem;
+  margin: 2rem auto 255px auto;
+  padding: 1.5rem 1.5rem 0 1.5rem;
   background-color: #fff;
   border-radius: 14px;
   box-shadow: 0 4px 14px rgba(0,0,0,0.10);
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-  padding-bottom: 120px; /* altura da cart-bottom-bar + bottom nav */
+  min-height: 0;
+  box-sizing: border-box;
+  padding-bottom: 220px; /* espaço para a bottom bar, só aparece quando há itens */
 }
 .cart-container h2 {
   margin: 1rem 1rem;
@@ -30,20 +32,21 @@
   margin: 0;
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: stretch;
 }
 .cart-item {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 32px;
   padding: 1.1rem 1.5rem;
   border-bottom: 1px solid #ddd;
   background: #fff;
   border-radius: 14px;
-  margin-bottom: 1.2rem;
-  width: 100%;
+  margin-bottom: 0.5rem;
+ 
   max-width: 520px;
   box-sizing: border-box;
+  position: relative;
 }
 .cart-item:last-child {
   border-bottom: none;
@@ -57,6 +60,9 @@
   box-shadow: 0 2px 8px rgba(0,0,0,0.07);
   border: 2px solid #ff4d4d22;
   margin-right: 18px;
+  position: absolute;
+  top: 1.1rem;
+  left: 1.5rem;
 }
 .cart-item-info {
   flex: 1;
@@ -64,6 +70,7 @@
   flex-direction: column;
   gap: 4px;
   align-items: flex-start;
+  margin-left: 130px;
 }
 .cart-item-title, .cart-qty-controls, .cart-item-price, .cart-item-total {
   width: 100%;
@@ -94,7 +101,7 @@
   align-items: center;
   justify-content: center;
   transition: background 0.2s;
-  box-shadow: 0 1px 4px #ff4d4d22;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.13);
 }
 .qty-btn.remove {
   background: #ff4d4d;
@@ -125,7 +132,7 @@
   font-weight: 800;
   color: #ff4d4d;
   margin-top: 2.1rem;
-  margin-bottom: 1.1rem;
+  margin-bottom: 0.5rem;
   letter-spacing: 1px;
 }
 .empty-cart-message {
@@ -151,54 +158,55 @@
   font-size: 1.1rem;
   text-align: center;
   transition: background-color 0.3s;
-  box-shadow: 0 2px 8px #ff4d4d22;
-  margin: 0 auto;
-  width: 100%;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.13);
   max-width: 350px;
-}
-.cart-btn.finalizar {
-  background-color: #ff4d4d;
   margin-top: 1.2rem;
+  margin-bottom: 1.2rem;
+  align-self: center;
+  width: 100%;
 }
-.cart-btn.finalizar:hover {
-  background-color: #ff4d4d;
+.cart-header-block {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 2.2rem;
+}
+.cart-header-block .cart-btn {
+  width: auto;
+  min-width: 180px;
 }
 .cart-bottom-bar {
   position: fixed;
   left: 0;
-  bottom: 49px; /* altura da bottom nav, ajuste se necessário */
+  bottom: 46px; /* altura da bottom nav, ajuste se necessário */
   width: 100vw;
   background: #fff;
-  box-shadow: 0 -2px 12px #ff4d4d22;
+  box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.13);
   padding: 1.1rem 0.5rem 1.1rem 0.5rem;
   display: flex;
   flex-direction: column;
   align-items: center;
   z-index: 100;
 }
-.cart-total {
-  margin: 0 0 2rem 0;
-  font-size: 1.5rem;
-  font-weight: 800;
+body {
+  padding-bottom: 0;
+  box-sizing: border-box;
+}
+.cart-ingrediente.removed {
   color: #ff4d4d;
-  letter-spacing: 1px;
+  text-decoration: line-through;
+  font-style: italic;
+  opacity: 0.8;
 }
-.cart-bottom-bar .cart-btn.finalizar {
-  margin: 0;
-  max-width: 350px;
-}
-.cart-actions { display: none; }
 @media (max-width: 600px) {
   .cart-container {
     max-width: 98vw;
-    padding: 1.1rem 0.1rem 1.1rem 0.1rem;
-  }
-  .cart-combo-img {
-    width: 70px;
-    height: 70px;
+    padding: 1.1rem 0.1rem 0 0.1rem;
+    min-height: 0;
   }
   .cart-bottom-bar {
     padding: 0.7rem 0.1rem 0.7rem 0.1rem;
+    bottom: 46px;
   }
 }
 </style>
@@ -206,7 +214,13 @@
 
 {% block content %}
 <div class="cart-container">
-    <h2>Seu Carrinho</h2>
+    <div class="cart-header-block">
+        <h2>Seu Carrinho</h2>
+        {% if not cart_items %}
+            <p class="empty-cart-message">Seu carrinho está vazio.</p>
+            <a href="{% url 'home' %}" class="cart-btn">Voltar para a Loja</a>
+        {% endif %}
+    </div>
     {% if cart_items %}
         <ul class="cart-list">
             {% for item in cart_items %}
@@ -229,6 +243,11 @@
                   </div>
                   <span class="cart-item-price">Preço unitário: R$ {{ item.unit_price|floatformat:2 }}</span>
                   <span class="cart-item-total">Subtotal: R$ {{ item.line_total|floatformat:2 }}</span>
+                  <ul class="cart-ingredientes-list">
+                    {% for ingrediente in item.ingredientes %}
+                      <li class="cart-ingrediente{% if ingrediente.removed %} removed{% endif %}">{{ ingrediente.name }}</li>
+                    {% endfor %}
+                  </ul>
                 </div>
             </li>
             {% endfor %}
@@ -237,9 +256,6 @@
           <div class="cart-total">Total: R$ {{ cart_total|floatformat:2 }}</div>
           <a href="{% url 'finalizar_pedido' %}" class="cart-btn finalizar">Finalizar Pedido</a>
         </div>
-    {% else %}
-        <p class="empty-cart-message">Seu carrinho está vazio.</p>
-        <a href="{% url 'home' %}" class="cart-btn">Voltar para a Loja</a>
     {% endif %}
 </div>
 <script>

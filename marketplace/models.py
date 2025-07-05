@@ -95,14 +95,11 @@ class CartItem(models.Model):
             for sub_id, qty in customization.items():
                 try:
                     sub = SubProduct.objects.get(id=sub_id)
-                    # O mínimo padrão é 1 (exceto batata extra, pode ser 0)
+                    # O mínimo padrão é 1 para todos (inclusive refrigerante)
                     min_qty = 1
-                    if sub.product.name == "Batata Frita":
-                        min_qty = 0
                     if qty > min_qty:
                         total += (qty - min_qty) * float(sub.price)
-                    elif sub.product.name == "Refrigerante":
-                        total += float(sub.price)  # sempre soma o preço do refrigerante escolhido
+                    # Se qty < min_qty, não soma nada (ingrediente removido)
                 except SubProduct.DoesNotExist:
                     continue
         return total

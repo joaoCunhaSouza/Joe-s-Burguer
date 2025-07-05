@@ -36,7 +36,7 @@ header h1 {
   max-width: 100vw;
   /* --- MODIFICAÇÃO --- */
   /* Adiciona espaço na parte inferior para que o conteúdo não fique escondido atrás do menu fixo */
-  padding-bottom: 150px;
+  padding-bottom: 180px; /* Aumentado para garantir que nada fique escondido atrás do order-summary */
 }
 .carousel-container {
   display: flex;
@@ -381,35 +381,21 @@ document.addEventListener('DOMContentLoaded', function() {
 function updateOrderTotal() {
     let total = parseFloat("{{ combo.price|floatformat:'2' }}"); // Sempre começa com o preço base do combo
 
-    // Soma apenas os extras acima do mínimo
+    // Soma apenas os extras acima do padrão (nunca subtrai)
     document.querySelectorAll('.ingredients-list .ingredient-item').forEach(item => {
         const qtySpan = item.querySelector('.quantity-value');
         const subproductId = item.dataset.subproductId;
         if (qtySpan && subproductId && subproducts[subproductId]) {
-            let minQty = 1;
-            // Se for batata frita e não for o primeiro, mínimo é 0
-            const productName = item.closest('.ingredients-list').previousElementSibling ? item.closest('.ingredients-list').previousElementSibling.textContent : '';
-            if (productName.includes('Batata Frita')) {
-                minQty = (item === item.parentElement.firstElementChild) ? 1 : 0;
-            }
+            let padrao = 1;
             const qty = parseInt(qtySpan.textContent) || 0;
-            if (qty > minQty) {
-                total += (qty - minQty) * parseFloat(subproducts[subproductId].price);
+            if (qty > padrao) {
+                total += (qty - padrao) * parseFloat(subproducts[subproductId].price);
             }
-            // Nunca subtrai do total se qty < minQty
         }
     });
 
-    // Soma apenas 1 refrigerante selecionado (o preço do selecionado)
-    document.querySelectorAll('.drink-grid').forEach(grid => {
-      const selected = grid.querySelector('.drink-item.selected');
-      if (selected) {
-        const id = selected.dataset.subproductId;
-        if (subproducts[id]) {
-            total += parseFloat(subproducts[id].price);
-        }
-      }
-    });
+    // NÃO soma o preço do refrigerante selecionado, pois já está incluso no combo
+    // Se quiser cobrar por refrigerante extra, adicione lógica aqui
 
     document.getElementById('order-total').textContent = `Total: R$ ${total.toFixed(2).replace('.', ',')}`;
 }
@@ -419,14 +405,8 @@ function updateOrderTotal() {
     btn.addEventListener('click', function() {
       const span = this.parentElement.querySelector('.quantity-value');
       let qty = parseInt(span.textContent);
-      let minQty = 1;
-      // Se for batata frita e não for o primeiro, mínimo é 0
-      const item = this.closest('.ingredient-item');
-      if (item && item.closest('.ingredients-list').previousElementSibling && item.closest('.ingredients-list').previousElementSibling.textContent.includes('Batata Frita')) {
-        minQty = (item === item.parentElement.firstElementChild) ? 1 : 0;
-      }
       if (this.classList.contains('increase')) qty++;
-      else if (qty > minQty) qty--;
+      else if (qty > 0) qty--; // mínimo agora é 0
       span.textContent = qty;
       updateOrderTotal();
     });
@@ -458,10 +438,8 @@ function updateOrderTotal() {
 
     document.querySelectorAll('.ingredients-list .ingredient-item').forEach(item => {
         const qty = parseInt(item.querySelector('.quantity-value').textContent);
-        if (qty > 0) {
-            const subproductId = item.dataset.subproductId;
-            selectedItems.subproducts[subproductId] = qty;
-        }
+        const subproductId = item.dataset.subproductId;
+        selectedItems.subproducts[subproductId] = qty;
     });
 
     document.querySelectorAll('.drink-grid .drink-item.selected').forEach(item => {
