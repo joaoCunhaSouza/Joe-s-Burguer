@@ -63,11 +63,13 @@ body {
 
 .combo-carousel-inner {
   display: flex;
-  transition: transform 0.4s ease;
+  transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+  will-change: transform;
 }
 
 .combo-slide {
-  min-width: 100%;
+  min-width: 100vw;
+  width: 100vw;
   height: 200px;
   position: relative;
   overflow: hidden;
@@ -200,6 +202,141 @@ body {
     display: none !important;
   }
 }
+
+.carousel-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #ddd;
+  display: inline-block;
+  cursor: pointer;
+  margin: 0 4px;
+  transition: background 0.3s;
+}
+.carousel-dot.active {
+  background: #ff4d4d !important;
+}
+
+.header-user {
+  position: relative;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  padding: 16px 16px 0 0;
+  background: transparent;
+  z-index: 1001;
+}
+.user-avatar {
+  width: 40px;
+  height: 40px;
+  background: var(--primary, #ff4d4d);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  font-weight: bold;
+  cursor: pointer;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: box-shadow 0.2s;
+}
+.user-avatar:hover {
+  box-shadow: 0 4px 16px rgba(0,0,0,0.12);
+}
+.user-dropdown {
+  position: absolute;
+  top: 60px;
+  right: 16px;
+  min-width: 260px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.18);
+  padding: 18px 0 10px 0;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(-10px);
+  transition: opacity 0.25s, transform 0.25s;
+  z-index: 1002;
+}
+.user-dropdown.open {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+  animation: fadeIn 0.3s;
+}
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px);}
+  to { opacity: 1; transform: translateY(0);}
+}
+.user-info {
+  display: flex;
+  align-items: center;
+  padding: 0 18px 12px 18px;
+  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 10px;
+}
+.user-icon {
+  width: 48px;
+  height: 48px;
+  background: var(--primary, #ff4d4d);
+  color: #fff;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  margin-right: 12px;
+}
+.user-name {
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: var(--primary, #ff4d4d);
+}
+.user-email {
+  font-size: 0.95rem;
+  color: #888;
+}
+.user-actions {
+  list-style: none;
+  padding: 0 18px;
+  margin: 0 0 10px 0;
+}
+.user-actions li {
+  margin: 8px 0;
+}
+.user-actions a {
+  color: var(--primary, #ff4d4d);
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+.user-actions a:hover {
+  color: #d32f2f;
+}
+.logout-btn {
+  width: calc(100% - 36px);
+  margin: 0 18px;
+  background: #ff4d4d;
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 0;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.logout-btn:hover {
+  background: #d32f2f;
+}
+@media (max-width: 600px) {
+  .user-dropdown {
+    right: 8px;
+    min-width: 90vw;
+    max-width: 98vw;
+  }
+}
 </style>
 {% endblock %}
 
@@ -218,6 +355,12 @@ body {
       <h4>{{ image.alt_text }}</h4>
       {% endif %}
     </div>
+    {% endfor %}
+  </div>
+  <!-- Carousel indicators (bolinhas) -->
+  <div class="carousel-indicators" id="carousel-indicators" style="display: flex; justify-content: center; gap: 8px; margin: 12px 0;">
+    {% for image in carousel_images %}
+      <span class="carousel-dot{% if forloop.first %} active{% endif %}" data-index="{{ forloop.counter0 }}"></span>
     {% endfor %}
   </div>
 </div>
@@ -258,12 +401,68 @@ function toggleMenu() {
 
 // Carousel logic
 let currentSlide = 0;
+let carouselTimer = null;
+
+function renderCarousel() {
+  const carouselInner = document.querySelector('.combo-carousel-inner');
+  if (!carouselInner) return;
+  carouselInner.style.transform = `translateX(-${currentSlide * 100}%)`;
+  updateIndicators();
+}
+
 function nextSlide() {
   const slides = document.querySelectorAll('.combo-slide');
   if (slides.length === 0) return;
   currentSlide = (currentSlide + 1) % slides.length;
-  document.querySelector('.combo-carousel-inner').style.transform = `translateX(-${currentSlide * 100}%)`;
+  renderCarousel();
 }
-setInterval(nextSlide, 3000);
+
+function goToSlide(idx) {
+  currentSlide = idx;
+  renderCarousel();
+}
+
+function updateIndicators() {
+  document.querySelectorAll('.carousel-dot').forEach((dot, idx) => {
+    dot.classList.toggle('active', idx === currentSlide);
+  });
+}
+
+function startCarouselTimer() {
+  if (carouselTimer) clearInterval(carouselTimer);
+  carouselTimer = setInterval(nextSlide, 2500);
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  renderCarousel();
+  startCarouselTimer();
+  document.querySelectorAll('.carousel-dot').forEach(dot => {
+    dot.addEventListener('click', function() {
+      goToSlide(parseInt(this.dataset.index));
+    });
+  });
+
+  // Garante que o carrossel reinicie se o usuário voltar para a aba
+  document.addEventListener('visibilitychange', function() {
+    if (!document.hidden) {
+      startCarouselTimer();
+    }
+  });
+});
+
+function toggleUserMenu(event) {
+  event.stopPropagation();
+  const menu = document.getElementById('userDropdown');
+  menu.classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+  const menu = document.getElementById('userDropdown');
+  const avatar = document.getElementById('userAvatar');
+  if (menu && menu.classList.contains('open')) {
+    if (!menu.contains(e.target) && !avatar.contains(e.target)) {
+      menu.classList.remove('open');
+    }
+  }
+});
 </script>
 {% endblock %}

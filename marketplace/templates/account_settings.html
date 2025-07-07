@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% block title %}Dados da Conta{% endblock %}
+{% block content %}
+<div class="account-form-container">
+  <h2>Dados da Conta</h2>
+  <form method="post" class="account-form">{% csrf_token %}
+    <label for="name">Nome:</label>
+    <input type="text" name="name" id="name" value="{{ request.user.first_name }}" required>
+    <label for="email">E-mail:</label>
+    <input type="email" name="email" id="email" value="{{ request.user.email }}" required>
+    <label for="phone">Telefone:</label>
+    <input type="text" name="phone" id="phone" value="{{ request.user.profile.phone }}">
+    <label for="password">Nova Senha:</label>
+    <input type="password" name="password" id="password" autocomplete="new-password">
+    <button type="submit" class="logout-btn" style="margin-top:18px;">Salvar Alterações</button>
+  </form>
+  {% if messages %}
+    <ul class="account-messages">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>
+  {% endif %}
+</div>
+{% endblock %}
+{% block style %}
+<style>
+.account-form-container {
+  max-width: 380px;
+  margin: 32px auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+  padding: 32px 24px 24px 24px;
+}
+.account-form h2 {
+  text-align: center;
+  color: var(--primary);
+  margin-bottom: 18px;
+}
+.account-form label {
+  display: block;
+  margin: 12px 0 4px 0;
+  color: var(--primary);
+  font-weight: 500;
+}
+.account-form input {
+  width: 100%;
+  padding: 8px 10px;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  margin-bottom: 8px;
+  font-size: 1rem;
+  background: #fafafa;
+  transition: border 0.2s;
+}
+.account-form input:focus {
+  border: 1.5px solid var(--primary);
+  outline: none;
+}
+.account-form button.logout-btn {
+  width: 100%;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 0;
+  font-weight: bold;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.account-form button.logout-btn:hover {
+  background: #d32f2f;
+}
+.account-messages {
+  margin-top: 16px;
+  padding: 0;
+  list-style: none;
+  text-align: center;
+}
+.account-messages li {
+  color: var(--primary);
+  background: #fff0f0;
+  border-radius: 8px;
+  margin: 4px 0;
+  padding: 6px 0;
+  font-size: 0.98em;
+}
+@media (max-width: 600px) {
+  .account-form-container {
+    max-width: 98vw;
+    padding: 18px 4vw 18px 4vw;
+  }
+}
+</style>
+{% endblock %}

@@ -210,7 +210,7 @@ header h1 {
   gap: 12px;
   margin-top: 20px;
 }
-.drink-item {
+.drink-item, .batata-item {
   background: white;
   border-radius: 8px;
   padding: 10px;
@@ -224,7 +224,7 @@ header h1 {
   text-align: center;
 }
 
-.drink-item.selected {
+.drink-item.selected, .batata-item.selected {
   border-color: #ff4d4d;
   box-shadow: 0 0 6px #ff4d4d;
 }
@@ -250,6 +250,22 @@ header h1 {
           <div class="drink-grid">
             {% for subproduct in product.subproducts.all %}
             <div class="drink-item {% if forloop.first %}selected{% endif %}" data-subproduct-id="{{ subproduct.id }}">
+              {% if subproduct.image %}
+                <img src="{{ subproduct.image.url }}" class="ingredient-icon" alt="{{ subproduct.name }}">
+              {% else %}
+                <img src="{% static 'img/default-subproduct.png' %}" class="ingredient-icon" alt="{{ subproduct.name }}">
+              {% endif %}
+              <div class="ingredient-details">
+                <span class="ingredient-name">{{ subproduct.name }}</span>
+                <span class="ingredient-price">R$ {{ subproduct.price|floatformat:2 }}</span>
+              </div>
+            </div>
+            {% endfor %}
+          </div>
+        {% elif product.name == "Batata Frita" %}
+          <div class="drink-grid">
+            {% for subproduct in product.subproducts.all %}
+            <div class="batata-item {% if forloop.first %}selected{% endif %}" data-subproduct-id="{{ subproduct.id }}">
               {% if subproduct.image %}
                 <img src="{{ subproduct.image.url }}" class="ingredient-icon" alt="{{ subproduct.name }}">
               {% else %}
@@ -413,14 +429,26 @@ function updateOrderTotal() {
   });
 
   document.querySelectorAll('.drink-grid').forEach(grid => {
-    const firstItem = grid.querySelector('.drink-item');
-    if (firstItem && !grid.querySelector('.drink-item.selected')) {
-      firstItem.classList.add('selected');
+    // Refrigerante
+    const firstDrink = grid.querySelector('.drink-item');
+    if (firstDrink && !grid.querySelector('.drink-item.selected')) {
+      firstDrink.classList.add('selected');
     }
-
     grid.querySelectorAll('.drink-item').forEach(item => {
       item.addEventListener('click', () => {
         grid.querySelectorAll('.drink-item').forEach(i => i.classList.remove('selected'));
+        item.classList.add('selected');
+        updateOrderTotal();
+      });
+    });
+    // Batata Frita
+    const firstBatata = grid.querySelector('.batata-item');
+    if (firstBatata && !grid.querySelector('.batata-item.selected')) {
+      firstBatata.classList.add('selected');
+    }
+    grid.querySelectorAll('.batata-item').forEach(item => {
+      item.addEventListener('click', () => {
+        grid.querySelectorAll('.batata-item').forEach(i => i.classList.remove('selected'));
         item.classList.add('selected');
         updateOrderTotal();
       });
@@ -443,8 +471,12 @@ function updateOrderTotal() {
     });
 
     document.querySelectorAll('.drink-grid .drink-item.selected').forEach(item => {
-        const subproductId = item.dataset.subproductId;
-        selectedItems.subproducts[subproductId] = 1;
+      const subproductId = item.dataset.subproductId;
+      selectedItems.subproducts[subproductId] = 1;
+    });
+    document.querySelectorAll('.drink-grid .batata-item.selected').forEach(item => {
+      const subproductId = item.dataset.subproductId;
+      selectedItems.subproducts[subproductId] = 1;
     });
     
     // CORREÇÃO: Pega o comboId e o csrfToken dinamicamente do template

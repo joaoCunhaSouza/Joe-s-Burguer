@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, include
 from . import views
 from .views_payment import finalizar_pedido
 
@@ -16,4 +16,5 @@ urlpatterns = [
     path('combo/<int:combo_id>/add-to-cart/', views.add_to_cart, name='add_to_cart'),
     path('cart/update/', views.update_cart_item, name='update_cart_item'),
     path('finalizar-pedido/', finalizar_pedido, name='finalizar_pedido'),
+    path('conta/', include('marketplace.urls_account')),
 ]

@@ -1,0 +1,13 @@
+{% extends 'base.html' %}
+{% block title %}Editar Nome{% endblock %}
+{% block content %}
+<h2>Editar Nome</h2>
+<form method="post">{% csrf_token %}
+  <label for="name">Nome:</label>
+  <input type="text" name="name" id="name" value="{{ request.user.first_name }}" required>
+  <button type="submit">Salvar</button>
+</form>
+{% if messages %}
+  <ul>{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>
+{% endif %}
+{% endblock %}

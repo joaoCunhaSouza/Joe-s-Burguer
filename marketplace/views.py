@@ -132,25 +132,12 @@ def cart(request):
 
         ingredientes = []
         for product in item.combo.products.all():
-            if product.name == "Refrigerante":
-                # Só mostra o refrigerante selecionado
-                for sub in product.subproducts.all():
-                    qty = 0
-                    if item.customization and str(sub.id) in item.customization:
-                        qty = item.customization[str(sub.id)]
-                    if qty == 1:
-                        ingredientes.append({
-                            'name': sub.name,
-                            'removed': False
-                        })
-            else:
-                for sub in product.subproducts.all():
-                    padrao = 1
-                    if product.name == "Batata Frita":
-                        padrao = 0 if sub.name != product.name else 1
-                    qty = padrao
-                    if item.customization and str(sub.id) in item.customization:
-                        qty = item.customization[str(sub.id)]
+            for sub in product.subproducts.all():
+                # Só mostra se o usuário explicitamente selecionou (qty >= 1) ou removeu (qty == 0)
+                qty = None
+                if item.customization and str(sub.id) in item.customization:
+                    qty = item.customization[str(sub.id)]
+                if qty is not None:
                     if qty == 0:
                         ingredientes.append({
                             'name': sub.name,

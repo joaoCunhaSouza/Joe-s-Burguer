@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+{% block title %}Histórico de Pedidos{% endblock %}
+{% block content %}
+<div class="account-form-container">
+  <h2>Histórico de Pedidos</h2>
+  <ul class="order-list">
+    {% for pedido in pedidos %}
+      <li class="order-item">Pedido #{{ pedido.id }} - {{ pedido.data }} - {{ pedido.status }}</li>
+    {% empty %}
+      <li class="order-item">Nenhum pedido encontrado.</li>
+    {% endfor %}
+  </ul>
+</div>
+{% endblock %}
+{% block style %}
+<style>
+.account-form-container {
+  max-width: 380px;
+  margin: 32px auto;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.10);
+  padding: 32px 24px 24px 24px;
+}
+.account-form-container h2 {
+  text-align: center;
+  color: var(--primary);
+  margin-bottom: 18px;
+}
+.order-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.order-item {
+  background: #fafafa;
+  border-radius: 8px;
+  margin: 8px 0;
+  padding: 12px 10px;
+  color: #333;
+  font-size: 1rem;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+@media (max-width: 600px) {
+  .account-form-container {
+    max-width: 98vw;
+    padding: 18px 4vw 18px 4vw;
+  }
+}
+</style>
+{% endblock %}
