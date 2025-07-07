@@ -232,6 +232,9 @@ body {
 <div class="cart-container">
     <div class="cart-header-block">
         <h2>Seu Carrinho</h2>
+        {% if request.GET.erro %}
+          <div class="cart-error-message" style="color:#ff4d4d; background:#fff0f0; border-radius:8px; padding:10px 0; margin-bottom:10px; text-align:center; font-weight:600;">{{ request.GET.erro }}</div>
+        {% endif %}
         {% if not cart_items %}
             <p class="empty-cart-message">Seu carrinho está vazio.</p>
             <a href="{% url 'home' %}" class="cart-btn">Voltar para a Loja</a>

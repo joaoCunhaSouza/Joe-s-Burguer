@@ -34,9 +34,8 @@ header h1 {
 .main-container {
   width: 100%;
   max-width: 100vw;
-  /* --- MODIFICAÇÃO --- */
-  /* Adiciona espaço na parte inferior para que o conteúdo não fique escondido atrás do menu fixo */
-  padding-bottom: 180px; /* Aumentado para garantir que nada fique escondido atrás do order-summary */
+  padding-bottom: 70px; /* espaço para bottom nav */
+  box-sizing: border-box;
 }
 .carousel-container {
   display: flex;
@@ -228,6 +227,22 @@ header h1 {
   border-color: #ff4d4d;
   box-shadow: 0 0 6px #ff4d4d;
 }
+
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid #ddd;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px 0;
+    z-index: 999;
+    max-width: 100vw;
+    box-sizing: border-box;
+  }
 </style>
 </head>
 <body>
@@ -314,6 +329,20 @@ header h1 {
   <div class="order-total" id="order-total">Total: R$ 0,00</div>
   <div class="action-buttons">
     <button class="action-btn confirm-btn" data-cart-url="{% url 'cart' %}">Finalizar Pedido</button>
+  </div>
+</div>
+
+{% block content %}{% endblock %}
+
+<div class="bottom-nav">
+  <div class="nav-item" onclick="window.location.href='{% url 'home' %}'">
+    <i class="fas fa-home"></i>
+  </div>
+  <div class="nav-item" onclick="window.location.href='{% url 'cart' %}'">
+    <i class="fas fa-shopping-cart"></i>
+    {% if cart_items_count and cart_items_count > 0 %}
+    <span class="cart-count">{{ cart_items_count }}</span>
+    {% endif %}
   </div>
 </div>
 

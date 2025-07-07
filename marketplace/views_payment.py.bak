@@ -27,6 +27,7 @@ def finalizar_pedido(request):
             })
             total += float(item.combo.price) * int(item.quantity)
 
+        # Forçar conta de comprador de teste no ambiente sandbox
         payment_data = {
             "items": product_items,
             "back_urls": {
@@ -35,17 +36,19 @@ def finalizar_pedido(request):
                 "pending": "http://127.0.0.1:8000/compraerrada",
             },
             "auto_return": "all",
-            "payer_email": user.email or "cliente@example.com",
+            "payer": {
+                "email": "TESTUSER1230067445@testuser.com"
+            },
             "external_reference": f"Pedido de {user.username}",
             "description": f"Pedido de combos Joe's Burgers"
         }
 
         result = sdk.preference().create(payment_data)
         payment = result["response"]
-        # Corrigir para usar init_point se sandbox_init_point não existir
         redirect_url = payment.get('sandbox_init_point') or payment.get('init_point')
         if not redirect_url:
             return HttpResponseBadRequest("Erro ao obter link de pagamento do Mercado Pago.")
         return redirect(redirect_url)
+        
     except Exception as e:
         return HttpResponseBadRequest(f"Erro ao gerar link de pagamento: {str(e)}")
