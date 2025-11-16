@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+{% block title %}Generate Token{% endblock %}
+{% block content %}
+<div style="max-width:420px;margin:40px auto;padding:24px;background:#fff;border-radius:12px;">
+  <h2>Gerar Token</h2>
+  <form method="post" id="genForm">{% csrf_token %}
+    <label for="label">Label (opcional)</label>
+    <input id="label" name="label" type="text" style="width:100%;padding:8px;margin:8px 0;border:1px solid #ddd;border-radius:8px;" />
+    <button type="submit" style="background:#219150;color:#fff;border:none;padding:10px 14px;border-radius:8px;">Gerar</button>
+  </form>
+  <div id="result" style="margin-top:12px"></div>
+</div>
+{% endblock %}
+{% block scripts %}
+<script>
+document.getElementById('genForm').addEventListener('submit', async function(e){
+  e.preventDefault();
+  const form = e.target;
+  const data = new FormData(form);
+  const res = await fetch('', {method:'POST', body: data});
+  if(res.ok){
+    const j = await res.json();
+    document.getElementById('result').innerHTML = '<strong>Token:</strong> <code>'+j.key+'</code><br/><strong>Label:</strong> '+(j.label||'');
+  } else {
+    document.getElementById('result').textContent = 'Erro ao gerar token';
+  }
+});
+</script>
+{% endblock %}

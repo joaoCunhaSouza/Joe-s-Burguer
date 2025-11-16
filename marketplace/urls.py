@@ -1,6 +1,7 @@
 from django.urls import path, include
 from . import views
 from .views_payment import finalizar_pedido, compra_sucesso, compra_errada, compra_pendente
+from . import views_token, views_kitchen
 
 urlpatterns = [
     path('', views.loading_screen, name='loading'),
@@ -20,4 +21,18 @@ urlpatterns = [
     path('compraerrada', compra_errada, name='compra_errada'),
     path('compra-pendente', compra_pendente, name='compra_pendente'),
     path('conta/', include('marketplace.urls_account')),
+    # Token / offline endpoints
+    path('token/login/', views_token.token_login, name='token_login'),
+    path('token/dashboard/', views_token.token_dashboard, name='token_dashboard'),
+    path('token/generate/', views_token.generate_token, name='generate_token'),
+    path('token/offline-submit/', views_token.offline_submit, name='offline_submit'),
+    # CSRF helper for client-side token refresh
+    path('csrf/refresh/', views.csrf_refresh, name='csrf_refresh'),
+    # Kitchen (cozinha) views
+    path('kitchen/login/', views_kitchen.kitchen_login, name='kitchen_login'),
+    path('kitchen/logout/', views_kitchen.kitchen_logout, name='kitchen_logout'),
+    path('kitchen/', views_kitchen.kitchen_dashboard, name='kitchen_dashboard'),
+    path('kitchen/orders.json', views_kitchen.kitchen_orders_json, name='kitchen_orders_json'),
+    path('kitchen/order/<int:order_id>/', views_kitchen.kitchen_order_detail, name='kitchen_order_detail'),
+    path('kitchen/order/<int:order_id>/confirm/', views_kitchen.kitchen_confirm_action, name='kitchen_confirm_action'),
 ]

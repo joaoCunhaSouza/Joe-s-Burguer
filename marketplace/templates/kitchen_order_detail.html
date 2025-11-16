@@ -1,0 +1,33 @@
+{% extends 'kitchen_base.html' %}
+{% block title %}Pedido {{ order.id }}{% endblock %}
+{% block content %}
+<div style="max-width:420px;margin:40px auto;padding:24px;background:#fff;border-radius:12px;">
+  <h2>Pedido {{ order.id }}</h2>
+  <p><strong>Cliente:</strong> {{ order.customer_name }}</p>
+  <p><strong>Total:</strong> R$ {{ order.total }}</p>
+  <p><strong>Status:</strong> {{ order.get_status_display }}</p>
+  <h3>Itens</h3>
+  <ul>
+    {% for it in items_data %}
+      <li class="cart-item" style="list-style:none;margin-bottom:10px;padding:8px;border-bottom:1px solid #eee;">
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <div><strong>{{ it.quantity }} x {{ it.name }}</strong></div>
+          <div style="color:#ff4d4d;font-weight:700">R$ {{ it.line_total }}</div>
+        </div>
+        {% if it.ingredientes and it.ingredientes|length > 0 %}
+          <ul style="margin-top:6px;padding-left:16px;">
+            {% for ing in it.ingredientes %}
+              <li class="cart-ingrediente{% if ing.removed %} removed{% endif %}">{{ ing.name }}{% if ing.removed %} (removido){% endif %}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      </li>
+    {% endfor %}
+  </ul>
+
+  <div style="margin-top:12px;display:flex;gap:8px;justify-content:flex-start;">
+    <a class="btn btn-primary" href="{% url 'kitchen_confirm_action' order.id %}?action=finish">Finalizar Pedido</a>
+    <a class="btn btn-danger" href="{% url 'kitchen_confirm_action' order.id %}?action=cancel">Cancelar Pedido</a>
+  </div>
+</div>
+{% endblock %}

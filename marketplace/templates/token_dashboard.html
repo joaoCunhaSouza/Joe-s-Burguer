@@ -1,0 +1,57 @@
+{% extends 'base.html' %}
+{% block title %}Token Dashboard{% endblock %}
+{% block content %}
+<div style="max-width:900px;margin:24px auto;padding:18px;background:#fff;border-radius:12px;">
+  <h2>Token Dashboard</h2>
+  {% if message %}<p style="color:green">{{ message }}</p>{% endif %}
+  <section>
+    <h3>Offline submissions</h3>
+    <table style="width:100%;border-collapse:collapse">
+      <thead><tr><th>ID</th><th>Token</th><th>Payload</th><th>Created</th><th>Processed</th><th>Action</th></tr></thead>
+      <tbody>
+        {% for s in submissions %}
+        <tr style="border-top:1px solid #eee">
+          <td>{{ s.id }}</td>
+          <td>{{ s.token.label|default:s.token.key|default:'-' }}</td>
+          <td><pre style="white-space:pre-wrap">{{ s.payload|safe }}</pre></td>
+          <td>{{ s.created_at }}</td>
+          <td>{{ s.processed }}</td>
+          <td>
+            <form method="post" style="display:inline">{% csrf_token %}
+              <input type="hidden" name="action" value="mark_processed" />
+              <input type="hidden" name="submission_id" value="{{ s.id }}" />
+              <button type="submit" style="background:#eee;border:1px solid #ddd;padding:6px;border-radius:6px">Mark Processed</button>
+            </form>
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6">No submissions</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </section>
+
+  <section style="margin-top:18px">
+    <h3>Create product / combo</h3>
+    <form method="post">{% csrf_token %}
+      <input type="hidden" name="action" value="create_product" />
+      <label>Name</label>
+      <input name="name" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ddd;border-radius:6px" />
+      <label>Price</label>
+      <input name="price" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ddd;border-radius:6px" />
+      <label>Description</label>
+      <textarea name="description" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ddd;border-radius:6px"></textarea>
+      <button type="submit" style="background:#ff4d4d;color:#fff;padding:8px 12px;border:none;border-radius:8px">Create Product</button>
+    </form>
+
+    <form method="post" style="margin-top:8px">{% csrf_token %}
+      <input type="hidden" name="action" value="create_combo" />
+      <label>Name</label>
+      <input name="name" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ddd;border-radius:6px" />
+      <label>Price</label>
+      <input name="price" style="width:100%;padding:8px;margin:6px 0;border:1px solid #ddd;border-radius:6px" />
+      <button type="submit" style="background:#219150;color:#fff;padding:8px 12px;border:none;border-radius:8px">Create Combo</button>
+    </form>
+  </section>
+</div>
+{% endblock %}

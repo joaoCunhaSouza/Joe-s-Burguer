@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
 import json
 from django.db.models import F, Sum
+from django.middleware.csrf import get_token
 
 # ... (suas outras views como login, register, etc. permanecem as mesmas)
 
@@ -26,7 +27,16 @@ def login_view(request):
     if request.method == 'POST':
         email = request.POST.get('email')
         password = request.POST.get('password')
+        # Primeiro tenta autenticar usando o valor do campo como username (padrão do Django)
         user = authenticate(request, username=email, password=password)
+        if not user:
+            # Se falhar, tenta buscar um usuário com esse email e autenticar usando o username real
+            try:
+                possible = User.objects.get(email=email)
+                user = authenticate(request, username=possible.username, password=password)
+            except User.DoesNotExist:
+                user = None
+
         if user:
             login(request, user)
             return redirect('home')
@@ -238,3 +248,11 @@ def cart_view(request):
         'cart_items_count': cart_items_count,
     }
     return render(request, 'cart.html', context)
+
+
+def csrf_refresh(request):
+    """Return a fresh CSRF token as JSON. Useful for single-page apps or when
+    switching between authenticated sessions in different tabs.
+    """
+    token = get_token(request)
+    return JsonResponse({'csrfToken': token})

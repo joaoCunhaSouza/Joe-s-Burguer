@@ -1,0 +1,66 @@
+{% extends 'kitchen_base.html' %}
+{% block title %}Cozinha - Pedidos{% endblock %}
+{% block content %}
+<div style="max-width:1000px;margin:20px auto;padding:20px;background:#fff;border-radius:12px;">
+  <h2>Fila de Pedidos</h2>
+  <table class="kitchen-table">
+    <thead><tr><th>ID</th><th>Cliente</th><th>Total</th><th>Status</th><th>Criado</th></tr></thead>
+    <tbody>
+      {% for o in orders %}
+      <tr style="border-top:1px solid #eee">
+        <td><a href="{% url 'kitchen_order_detail' o.id %}">{{ o.id }}</a></td>
+        <td><a href="{% url 'kitchen_order_detail' o.id %}">{{ o.customer_name }}</a></td>
+        <td>R$ {{ o.total }}</td>
+        <td>{{ o.get_status_display }}</td>
+        <td>{{ o.created_at }}</td>
+      </tr>
+      {% empty %}
+      <tr><td colspan="5">Nenhum pedido.</td></tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Poll the kitchen orders JSON endpoint every 8 seconds and update the table body.
+const kitchenPollInterval = 8000;
+async function fetchOrdersAndRender(){
+  try{
+    const resp = await fetch('{% url "kitchen_orders_json" %}', {credentials: 'same-origin'});
+    if(!resp.ok) return;
+    const data = await resp.json();
+    const tbody = document.querySelector('table.kitchen-table tbody');
+    if(!tbody) return;
+    tbody.innerHTML = '';
+    if(!data.orders || data.orders.length === 0){
+      const tr = document.createElement('tr');
+      tr.innerHTML = '<td colspan="5">Nenhum pedido.</td>';
+      tbody.appendChild(tr);
+      return;
+    }
+    data.orders.forEach(o => {
+      const tr = document.createElement('tr');
+      tr.style.borderTop = '1px solid #eee';
+      tr.innerHTML = `<td><a href="/kitchen/order/${o.id}/">${o.id}</a></td>`+
+                     `<td><a href="/kitchen/order/${o.id}/">${o.customer_name}</a></td>`+
+                     `<td>R$ ${o.total}</td>`+
+                     `<td>${o.status}</td>`+
+                     `<td>${new Date(o.created_at).toLocaleString()}</td>`;
+      tbody.appendChild(tr);
+    });
+  }catch(e){
+    // silent fail; next poll will try again
+    console.error('kitchen poll error', e);
+  }
+}
+
+// Start polling when page loads
+document.addEventListener('DOMContentLoaded', function(){
+  // initial fetch
+  fetchOrdersAndRender();
+  setInterval(fetchOrdersAndRender, kitchenPollInterval);
+});
+</script>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends 'kitchen_base.html' %}
+{% block title %}Confirmar ação{% endblock %}
+{% block content %}
+<div style="max-width:420px;margin:40px auto;padding:24px;background:#fff;border-radius:12px;text-align:center;">
+  <h3>Tem certeza disso?</h3>
+  <p>Pedido {{ order.id }} - {{ order.customer_name }}</p>
+  <form method="post">{% csrf_token %}
+    <button class="btn btn-primary" name="confirm" value="yes">SIM</button>
+    <button class="btn btn-ghost" name="confirm" value="no" style="margin-left:8px">NÃO</button>
+  </form>
+</div>
+{% endblock %}

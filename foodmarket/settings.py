@@ -32,6 +32,13 @@ ALLOWED_HOSTS = [
 ]
 
 
+# Trusted origins for CSRF checks (development)
+# Include the full origin (scheme + host + optional port) used when testing locally.
+# If you access the dev server on 127.0.0.1:8000 or localhost:8000, include those here.
+CSRF_TRUSTED_ORIGINS = [
+    "http://127.0.0.1:8000",
+    "http://localhost:8000",
+]
 
 
 # Application definition

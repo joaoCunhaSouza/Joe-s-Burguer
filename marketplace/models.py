@@ -116,3 +116,53 @@ def cart_view(request):
         'cart_items_count': sum(item.quantity for item in cart_items),
     }
     return render(request, 'cart.html', context)
+
+
+class APIToken(models.Model):
+    """Simple token model to allow token-based login for a superuser or staff.
+    The token is a random string stored here with an optional label and creator.
+    """
+    key = models.CharField(max_length=64, unique=True)
+    label = models.CharField(max_length=120, blank=True)
+    created_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.label or self.key[:12]}"
+
+
+class OfflineSubmission(models.Model):
+    """Stores data submitted from the client when offline so server can persist later.
+    The `payload` is stored as JSON; `processed` marks whether an admin processed it.
+    """
+    token = models.ForeignKey(APIToken, on_delete=models.SET_NULL, null=True, blank=True)
+    payload = models.JSONField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    processed = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"OfflineSubmission {self.id} ({'processed' if self.processed else 'new'})"
+
+
+class Order(models.Model):
+    STATUS_NEW = 'new'
+    STATUS_PREPARING = 'preparing'
+    STATUS_DONE = 'done'
+    STATUS_CANCELLED = 'cancelled'
+    STATUS_CHOICES = [
+        (STATUS_NEW, 'Novo'),
+        (STATUS_PREPARING, 'Em preparação'),
+        (STATUS_DONE, 'Finalizado'),
+        (STATUS_CANCELLED, 'Cancelado'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True)
+    customer_name = models.CharField(max_length=150, blank=True)
+    items = models.JSONField(help_text='Snapshot dos itens do pedido')
+    total = models.DecimalField(max_digits=8, decimal_places=2, default=0)
+    status = models.CharField(max_length=24, choices=STATUS_CHOICES, default=STATUS_NEW)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Pedido #{self.id} - {self.customer_name or (self.user.username if self.user else 'Anon') } - {self.status}"

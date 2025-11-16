@@ -1,6 +1,6 @@
 from django.http import HttpResponse, HttpResponseBadRequest
 from django.shortcuts import redirect
-from .models import CartItem
+from .models import CartItem, Order
 import mercadopago
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
@@ -63,6 +63,31 @@ def finalizar_pedido(request):
             "external_reference": f"Pedido de {user.username}",
             "description": f"Pedido de combos Joe's Burgers"
         }
+
+        # Antes de criar a preferência de pagamento, criamos um pedido na fila da cozinha
+        try:
+            # snapshot dos itens do carrinho
+            order_items = []
+            for item in cart_items:
+                order_items.append({
+                    'combo_id': item.combo.id if item.combo else None,
+                    'name': item.combo.name if item.combo else (item.product.name if item.product else ''),
+                    'quantity': int(item.quantity),
+                    'customization': item.customization or {},
+                    'unit_price': float(item.combo.price) if item.combo else (float(item.product.price) if item.product else 0),
+                    'total_price': float(item.get_total_price),
+                })
+            order_total = sum(i['total_price'] for i in order_items)
+            order = Order.objects.create(
+                user=user,
+                customer_name=user.first_name or user.username,
+                items=order_items,
+                total=order_total,
+                status=Order.STATUS_NEW,
+            )
+        except Exception:
+            # não queremos bloquear o pagamento se por alguma razão o pedido não puder ser salvo
+            order = None
 
         result = sdk.preference().create(payment_data)
         payment = result["response"]

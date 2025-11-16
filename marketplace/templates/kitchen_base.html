@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>{% block title %}Cozinha{% endblock %}</title>
+    <!-- Intentionally no viewport meta: desktop-only layout -->
+    <style>
+      /* Minimal desktop-oriented styles for kitchen UI (reverted to previous look) */
+      html,body{height:100%;background:#f5f5f5;font-family:Arial,Helvetica,sans-serif;color:#222}
+      .kitchen-container{width:980px;margin:18px auto;padding:18px;background:#fff;border-radius:8px;box-shadow:0 1px 4px rgba(0,0,0,0.06)}
+      header.kitchen-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+      header.kitchen-header h1{font-size:20px;margin:0}
+      /* logout button kept subtle */
+      a.kitchen-logout{font-size:13px;color:#333;text-decoration:none;padding:6px 10px;border:1px solid #ddd;border-radius:6px;background:#fafafa}
+      table.kitchen-table{width:100%;border-collapse:collapse}
+      table.kitchen-table th, table.kitchen-table td{padding:8px;text-align:left;border-bottom:1px solid #eee}
+      .btn{display:inline-block;padding:8px 12px;border-radius:8px;text-decoration:none}
+      .btn-primary{background:#ff4d4d;color:#fff} /* red for primary (finalizar) */
+      .btn-danger{background:#ff4d4d;color:#fff}  /* red for cancel */
+      .btn-ghost{background:transparent;border:1px solid #eee;color:#333}
+      .cart-ingrediente.removed{color:#c00;text-decoration:line-through}
+    </style>
+  </head>
+  <body>
+    <div class="kitchen-container">
+      <header class="kitchen-header">
+        <h1>Cozinha</h1>
+        {% comment %}Hide logout link on the login page; show only when authenticated and not on /kitchen/login/{% endcomment %}
+        {% if user.is_authenticated and request.path != '/kitchen/login/' %}
+          <a class="kitchen-logout" href="{% url 'kitchen_logout' %}">Sair</a>
+        {% endif %}
+      </header>
+
+      {% block content %}{% endblock %}
+    </div>
+    <script>
+      async function refreshCsrfToken(){
+        try{
+          const resp = await fetch('{% url "csrf_refresh" %}', {credentials: 'same-origin'});
+          if(!resp.ok) return;
+          const data = await resp.json();
+          if(data && data.csrfToken){
+            document.querySelectorAll('input[name="csrfmiddlewaretoken"]').forEach(i => i.value = data.csrfToken);
+            document.cookie = 'csrftoken=' + data.csrfToken + '; path=/';
+          }
+        }catch(e){ console.warn('CSRF refresh failed', e); }
+      }
+      document.addEventListener('DOMContentLoaded', refreshCsrfToken);
+    </script>
+  </body>
+</html>
