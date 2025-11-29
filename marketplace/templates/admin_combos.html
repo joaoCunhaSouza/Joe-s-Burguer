@@ -1,0 +1,78 @@
+{% extends 'admin_base.html' %}
+{% block title %}Combos - Admin{% endblock %}
+
+{% block content %}
+<h1 class="admin-page-title">🍔 Gerenciar Combos</h1>
+
+<div class="admin-card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <h2 class="admin-card-title" style="margin: 0;">Lista de Combos</h2>
+    <a href="/admin/marketplace/combo/add/" class="btn btn-primary" target="_blank">
+      ➕ Adicionar Novo Combo
+    </a>
+  </div>
+  
+  {% if combos %}
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Imagem</th>
+        <th>Nome</th>
+        <th>Descrição</th>
+        <th>Preço</th>
+        <th>Produtos</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for combo in combos %}
+      <tr>
+        <td>
+          {% if combo.image %}
+          <img src="{{ combo.image.url }}" alt="{{ combo.name }}" class="table-image">
+          {% else %}
+          <div style="width: 60px; height: 60px; background: #f3f4f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+            🍔
+          </div>
+          {% endif %}
+        </td>
+        <td><strong>{{ combo.name }}</strong></td>
+        <td style="max-width: 300px;">{{ combo.description|truncatewords:15 }}</td>
+        <td><strong style="color: #667eea;">R$ {{ combo.price }}</strong></td>
+        <td>{{ combo.products.count }} produto(s)</td>
+        <td>
+          <div style="display: flex; gap: 0.5rem;">
+            <a href="/admin/marketplace/combo/{{ combo.id }}/change/" class="btn btn-secondary" target="_blank" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+              ✏️ Editar
+            </a>
+            <a href="/admin/marketplace/combo/{{ combo.id }}/delete/" class="btn btn-danger" target="_blank" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+              🗑️ Excluir
+            </a>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div style="text-align: center; padding: 3rem;">
+    <div style="font-size: 3rem; margin-bottom: 1rem;">📦</div>
+    <p style="color: #666; font-size: 1.1rem; margin-bottom: 1.5rem;">Nenhum combo cadastrado ainda.</p>
+    <a href="/admin/marketplace/combo/add/" class="btn btn-primary" target="_blank">
+      ➕ Criar Primeiro Combo
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<div class="admin-card" style="background: #f8f9fa;">
+  <h3 style="margin-bottom: 1rem;">💡 Dicas para Gerenciar Combos</h3>
+  <ul style="color: #666; line-height: 1.8;">
+    <li><strong>Imagens:</strong> Use imagens de alta qualidade (recomendado: 800x600px)</li>
+    <li><strong>Preço:</strong> Defina preços competitivos e atrativos</li>
+    <li><strong>Produtos:</strong> Associe os produtos que compõem o combo</li>
+    <li><strong>Descrição:</strong> Seja claro e objetivo na descrição do combo</li>
+    <li><strong>Django Admin:</strong> Use o link "Editar" para acessar todas as funcionalidades avançadas</li>
+  </ul>
+</div>
+{% endblock %}

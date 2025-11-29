@@ -1,0 +1,62 @@
+{% extends 'admin_base.html' %}
+{% block title %}Carrossel - Admin{% endblock %}
+
+{% block content %}
+<h1 class="admin-page-title">🖼️ Gerenciar Carrossel</h1>
+
+<div class="admin-card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <h2 class="admin-card-title" style="margin: 0;">Imagens do Carrossel</h2>
+    <a href="/admin/marketplace/carouselimage/add/" class="btn btn-primary" target="_blank">
+      ➕ Adicionar Nova Imagem
+    </a>
+  </div>
+  
+  {% if images %}
+  <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+    {% for image in images %}
+    <div style="border: 2px solid #e2e8f0; border-radius: 12px; overflow: hidden; background: white;">
+      {% if image.image %}
+      <img src="{{ image.image.url }}" alt="Slide {{ image.order }}" style="width: 100%; height: 200px; object-fit: cover;">
+      {% else %}
+      <div style="width: 100%; height: 200px; background: #f3f4f6; display: flex; align-items: center; justify-content: center; font-size: 3rem;">
+        🖼️
+      </div>
+      {% endif %}
+      <div style="padding: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+          <span style="font-weight: 600; color: #667eea;">Ordem: {{ image.order }}</span>
+        </div>
+        <div style="display: flex; gap: 0.5rem;">
+          <a href="/admin/marketplace/carouselimage/{{ image.id }}/change/" class="btn btn-secondary" target="_blank" style="flex: 1; padding: 0.5rem; font-size: 0.85rem; text-align: center;">
+            ✏️ Editar
+          </a>
+          <a href="/admin/marketplace/carouselimage/{{ image.id }}/delete/" class="btn btn-danger" target="_blank" style="flex: 1; padding: 0.5rem; font-size: 0.85rem; text-align: center;">
+            🗑️ Excluir
+          </a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="text-align: center; padding: 3rem;">
+    <div style="font-size: 3rem; margin-bottom: 1rem;">🖼️</div>
+    <p style="color: #666; font-size: 1.1rem; margin-bottom: 1.5rem;">Nenhuma imagem no carrossel ainda.</p>
+    <a href="/admin/marketplace/carouselimage/add/" class="btn btn-primary" target="_blank">
+      ➕ Adicionar Primeira Imagem
+    </a>
+  </div>
+  {% endif %}
+</div>
+
+<div class="admin-card" style="background: #f8f9fa;">
+  <h3 style="margin-bottom: 1rem;">💡 Dicas para o Carrossel</h3>
+  <ul style="color: #666; line-height: 1.8;">
+    <li><strong>Dimensões:</strong> Use imagens com proporção 16:9 (ex: 1920x1080px)</li>
+    <li><strong>Ordem:</strong> Defina a ordem de exibição das imagens</li>
+    <li><strong>Qualidade:</strong> Use imagens de alta qualidade e otimizadas</li>
+    <li><strong>Quantidade:</strong> Recomenda-se de 3 a 5 imagens para melhor experiência</li>
+  </ul>
+</div>
+{% endblock %}

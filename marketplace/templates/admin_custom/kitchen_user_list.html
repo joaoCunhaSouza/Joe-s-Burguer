@@ -1,0 +1,78 @@
+{% extends 'admin_custom/base.html' %}
+
+{% block title %}Usuários da Cozinha - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="margin: 0;">Usuários da Cozinha</h2>
+        <a href="{% url 'admin_kitchen_user_add' %}" class="btn btn-success">+ Adicionar Usuário</a>
+    </div>
+    
+    <p style="color: #999; margin-bottom: 1.5rem;">
+        Gerencie os usuários que têm acesso ao painel da cozinha. Estes usuários podem visualizar e gerenciar pedidos.
+    </p>
+    
+    {% if kitchen_users %}
+    <table>
+        <thead>
+            <tr>
+                <th>Usuário</th>
+                <th>Nome</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for user in kitchen_users %}
+            <tr>
+                <td><strong>{{ user.username }}</strong></td>
+                <td>{{ user.first_name|default:"—" }}</td>
+                <td>{{ user.email|default:"—" }}</td>
+                <td>
+                    {% if user.is_active %}
+                        <span style="background: #d4edda; color: #155724; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">
+                            Ativo
+                        </span>
+                    {% else %}
+                        <span style="background: #f8d7da; color: #721c24; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">
+                            Inativo
+                        </span>
+                    {% endif %}
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="{% url 'admin_kitchen_user_edit' user.id %}" class="btn btn-primary btn-sm">Editar</a>
+                        <form method="post" action="{% url 'admin_kitchen_user_delete' user.id %}" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja excluir o usuário {{ user.username }}? Isso removerá o acesso à cozinha.');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #999; text-align: center; padding: 3rem;">
+        Nenhum usuário da cozinha cadastrado. Crie o primeiro usuário para dar acesso ao painel da cozinha.
+    </p>
+    {% endif %}
+</div>
+
+<div class="admin-card">
+    <h3 style="margin-bottom: 1rem;">Informações</h3>
+    <p style="color: #555; line-height: 1.6;">
+        <strong>Usuários da Cozinha</strong> têm acesso apenas ao painel de pedidos (<code>/kitchen/</code>) e podem:
+    </p>
+    <ul style="margin-left: 1.5rem; line-height: 1.8; color: #555;">
+        <li>Visualizar pedidos novos e em preparação</li>
+        <li>Ver detalhes completos dos pedidos</li>
+        <li>Alterar status dos pedidos (preparando, finalizado, cancelado)</li>
+    </ul>
+    <p style="color: #555; line-height: 1.6; margin-top: 1rem;">
+        <strong>Importante:</strong> Eles <strong>NÃO</strong> têm acesso ao painel administrativo (<code>/myadmin/</code>), que é exclusivo para superusuários.
+    </p>
+</div>
+{% endblock %}

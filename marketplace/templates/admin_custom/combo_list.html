@@ -1,0 +1,61 @@
+{% extends 'admin_custom/base.html' %}
+
+{% block title %}Combos - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="margin: 0;">Combos</h2>
+        <a href="{% url 'admin_combo_add' %}" class="btn btn-success">+ Adicionar Combo</a>
+    </div>
+    
+    {% if combos %}
+    <table>
+        <thead>
+            <tr>
+                <th>Imagem</th>
+                <th>Nome</th>
+                <th>Preço</th>
+                <th>Produtos Inclusos</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for combo in combos %}
+            <tr>
+                <td>
+                    {% if combo.image %}
+                    <img src="{{ combo.image.url }}" alt="{{ combo.name }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px;">
+                    {% else %}
+                    <div style="width: 60px; height: 60px; background: #ddd; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                        🍔
+                    </div>
+                    {% endif %}
+                </td>
+                <td><strong>{{ combo.name }}</strong></td>
+                <td>R$ {{ combo.price }}</td>
+                <td>
+                    {% for product in combo.products.all %}
+                        {{ product.name }}{% if not forloop.last %}, {% endif %}
+                    {% empty %}
+                        <em style="color: #7f8c8d;">Nenhum produto</em>
+                    {% endfor %}
+                </td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="{% url 'admin_combo_edit' combo.id %}" class="btn btn-primary btn-sm">Editar</a>
+                        <form method="post" action="{% url 'admin_combo_delete' combo.id %}" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja excluir este combo?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #7f8c8d; text-align: center; padding: 3rem;">Nenhum combo cadastrado</p>
+    {% endif %}
+</div>
+{% endblock %}

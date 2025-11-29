@@ -1,0 +1,22 @@
+{
+  "version": "1.0",
+  "servers": {
+    "joes-tools": {
+      "command": "node",
+      "args": ["mcp_server.js"]
+    },
+    "local-fs": {
+      "type": "filesystem",
+      "config": {
+        "root": "./",
+        "readOnly": false
+      }
+    },
+    "local-terminal": {
+      "type": "command",
+      "command": "powershell.exe",
+      "args": ["-NoLogo", "-NoProfile"],
+      "cwd": "./"
+    }
+  }
+}

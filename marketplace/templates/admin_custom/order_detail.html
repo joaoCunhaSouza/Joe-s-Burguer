@@ -1,0 +1,102 @@
+{% extends 'admin_custom/base.html' %}
+
+{% block title %}Pedido #{{ order.id }} - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+        <h2 style="margin: 0;">Pedido #{{ order.id }}</h2>
+        <a href="{% url 'admin_order_list' %}" class="btn btn-secondary">← Voltar para Lista</a>
+    </div>
+    
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px;">
+            <h3 style="color: #7f8c8d; font-size: 0.875rem; font-weight: 500; text-transform: uppercase; margin-bottom: 0.5rem;">Cliente</h3>
+            <p style="font-size: 1.25rem; font-weight: 600; color: #2c3e50; margin: 0;">
+                {% if order.user %}
+                    {{ order.user.first_name|default:order.user.username }}
+                {% else %}
+                    {{ order.customer_name|default:"Cliente Anônimo" }}
+                {% endif %}
+            </p>
+            {% if order.user %}
+            <p style="color: #7f8c8d; margin-top: 0.25rem; font-size: 0.875rem;">{{ order.user.email }}</p>
+            {% endif %}
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px;">
+            <h3 style="color: #7f8c8d; font-size: 0.875rem; font-weight: 500; text-transform: uppercase; margin-bottom: 0.5rem;">Total</h3>
+            <p style="font-size: 1.25rem; font-weight: 600; color: #27ae60; margin: 0;">R$ {{ order.total }}</p>
+        </div>
+        
+        <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px;">
+            <h3 style="color: #7f8c8d; font-size: 0.875rem; font-weight: 500; text-transform: uppercase; margin-bottom: 0.5rem;">Data</h3>
+            <p style="font-size: 1.25rem; font-weight: 600; color: #2c3e50; margin: 0;">{{ order.created_at|date:"d/m/Y" }}</p>
+            <p style="color: #7f8c8d; margin-top: 0.25rem; font-size: 0.875rem;">{{ order.created_at|date:"H:i" }}</p>
+        </div>
+    </div>
+    
+    <div style="background: #f8f9fa; padding: 1.5rem; border-radius: 8px; margin-bottom: 2rem;">
+        <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: #2c3e50;">Alterar Status</h3>
+        <form method="post" style="display: flex; gap: 1rem; align-items: center;">
+            {% csrf_token %}
+            <select name="status" class="form-control" style="max-width: 300px;">
+                {% for value, label in status_choices %}
+                <option value="{{ value }}" {% if order.status == value %}selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn btn-success">Atualizar Status</button>
+        </form>
+    </div>
+    
+    <h3 style="font-size: 1.25rem; margin-bottom: 1rem; color: #2c3e50;">Itens do Pedido</h3>
+    
+    {% if items_data %}
+    <table>
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Quantidade</th>
+                <th>Preço Unitário</th>
+                <th>Total</th>
+                <th>Customizações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items_data %}
+            <tr>
+                <td><strong>{{ item.name }}</strong></td>
+                <td>{{ item.quantity }}x</td>
+                <td>R$ {{ item.unit_price }}</td>
+                <td><strong>R$ {{ item.line_total }}</strong></td>
+                <td>
+                    {% if item.ingredientes %}
+                    <ul style="margin: 0; padding-left: 1.25rem; font-size: 0.875rem;">
+                        {% for ing in item.ingredientes %}
+                        <li style="{% if ing.removed %}color: #e74c3c; text-decoration: line-through;{% else %}color: #27ae60;{% endif %}">
+                            {{ ing.name }}
+                            {% if ing.removed %}
+                                <em>(removido)</em>
+                            {% endif %}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                    {% else %}
+                    <em style="color: #7f8c8d;">Sem customizações</em>
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr style="background: #f8f9fa; font-weight: 600;">
+                <td colspan="3" style="text-align: right; padding: 1rem;">Total do Pedido:</td>
+                <td colspan="2" style="color: #27ae60; font-size: 1.25rem;">R$ {{ order.total }}</td>
+            </tr>
+        </tfoot>
+    </table>
+    {% else %}
+    <p style="color: #7f8c8d; text-align: center; padding: 2rem;">Nenhum item neste pedido</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -4,6 +4,12 @@ from .models import CartItem, Order
 import mercadopago
 from django.contrib.auth.decorators import login_required
 from django.urls import reverse
+import logging
+import os
+import threading
+import requests
+
+logger = logging.getLogger(__name__)
 
 @login_required
 def finalizar_pedido(request):
@@ -69,11 +75,19 @@ def finalizar_pedido(request):
             # snapshot dos itens do carrinho
             order_items = []
             for item in cart_items:
+                # ensure customization keys are strings (JSONField may require string keys)
+                customization = item.customization or {}
+                try:
+                    customization = {str(k): v for k, v in customization.items()}
+                except Exception:
+                    # fallback if customization is not a dict
+                    customization = {}
+
                 order_items.append({
                     'combo_id': item.combo.id if item.combo else None,
                     'name': item.combo.name if item.combo else (item.product.name if item.product else ''),
                     'quantity': int(item.quantity),
-                    'customization': item.customization or {},
+                    'customization': customization,
                     'unit_price': float(item.combo.price) if item.combo else (float(item.product.price) if item.product else 0),
                     'total_price': float(item.get_total_price),
                 })
@@ -85,8 +99,34 @@ def finalizar_pedido(request):
                 total=order_total,
                 status=Order.STATUS_NEW,
             )
-        except Exception:
-            # não queremos bloquear o pagamento se por alguma razão o pedido não puder ser salvo
+            # If a KITCHEN_WEBHOOK_URL is configured, notify it asynchronously so
+            # external kitchen listeners (for example a local machine exposed via ngrok)
+            # receive the new order payload.
+            webhook_url = os.environ.get('KITCHEN_WEBHOOK_URL')
+            webhook_secret = os.environ.get('KITCHEN_WEBHOOK_SECRET')
+            if webhook_url:
+                def _send_webhook(u, s, payload):
+                    try:
+                        headers = {'Content-Type': 'application/json'}
+                        if s:
+                            headers['X-Kitchen-Secret'] = s
+                        # best-effort POST, short timeout
+                        requests.post(u, json=payload, headers=headers, timeout=5)
+                    except Exception as e:
+                        logger.exception('Failed sending kitchen webhook')
+
+                payload = {
+                    'id': order.id,
+                    'customer_name': order.customer_name,
+                    'total': float(order.total),
+                    'status': order.status,
+                    'created_at': order.created_at.isoformat() if order.created_at else None,
+                    'items': order_items,
+                }
+                threading.Thread(target=_send_webhook, args=(webhook_url, webhook_secret, payload), daemon=True).start()
+        except Exception as exc:
+            # Log the exception so we can debug why order creation failed in production
+            logger.exception('Failed to create Order snapshot before payment')
             order = None
 
         result = sdk.preference().create(payment_data)

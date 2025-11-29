@@ -1,0 +1,96 @@
+{% extends 'admin_custom/base.html' %}
+
+{% block title %}Dashboard - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <h2>Dashboard</h2>
+    
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Total de Produtos</h3>
+            <div class="stat-value">{{ total_products }}</div>
+        </div>
+        
+        <div class="stat-card">
+            <h3>Total de Combos</h3>
+            <div class="stat-value">{{ total_combos }}</div>
+        </div>
+        
+        <div class="stat-card">
+            <h3>Total de Pedidos</h3>
+            <div class="stat-value">{{ total_orders }}</div>
+        </div>
+        
+        <div class="stat-card">
+            <h3>Pedidos Pendentes</h3>
+            <div class="stat-value">{{ pending_orders }}</div>
+        </div>
+        
+        <div class="stat-card">
+            <h3>Usuários da Cozinha</h3>
+            <div class="stat-value">{{ kitchen_users }}</div>
+        </div>
+    </div>
+</div>
+
+<div class="admin-card">
+    <h2>Pedidos Recentes</h2>
+    
+    {% if recent_orders %}
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Cliente</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Data</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in recent_orders %}
+            <tr>
+                <td><strong>#{{ order.id }}</strong></td>
+                <td>{{ order.customer_name|default:"Cliente" }}</td>
+                <td><strong>R$ {{ order.total }}</strong></td>
+                <td>
+                    {% if order.status == 'new' %}
+                        <span style="color: #ff4d4d; font-weight: 600;">Novo</span>
+                    {% elif order.status == 'preparing' %}
+                        <span style="color: #333; font-weight: 600;">Preparando</span>
+                    {% elif order.status == 'done' %}
+                        <span style="color: #27ae60; font-weight: 600;">Finalizado</span>
+                    {% else %}
+                        <span style="color: #c00; font-weight: 600;">Cancelado</span>
+                    {% endif %}
+                </td>
+                <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
+                <td>
+                    <a href="{% url 'admin_order_detail' order.id %}" class="btn btn-primary btn-sm">Ver detalhes</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #999; text-align: center; padding: 2rem;">Nenhum pedido recente</p>
+    {% endif %}
+    
+    <div style="margin-top: 1.5rem; text-align: center;">
+        <a href="{% url 'admin_order_list' %}" class="btn btn-primary">Ver todos os pedidos</a>
+    </div>
+</div>
+
+<div class="admin-card">
+    <h2>Acesso Rápido</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-top: 1rem;">
+        <a href="{% url 'admin_kitchen_user_add' %}" class="btn btn-warning" style="text-align: center;">Novo Usuário Cozinha</a>
+        <a href="{% url 'admin_product_add' %}" class="btn btn-success" style="text-align: center;">+ Novo Produto</a>
+        <a href="{% url 'admin_combo_add' %}" class="btn btn-success" style="text-align: center;">+ Novo Combo</a>
+        <a href="{% url 'admin_subproduct_add' %}" class="btn btn-success" style="text-align: center;">+ Novo Subproduto</a>
+        <a href="{% url 'admin_carousel_add' %}" class="btn btn-success" style="text-align: center;">+ Nova Imagem</a>
+    </div>
+</div>
+{% endblock %}

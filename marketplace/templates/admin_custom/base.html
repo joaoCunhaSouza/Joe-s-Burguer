@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Admin - Joe's Burguer{% endblock %}</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            background: #f5f5f5;
+            color: #333;
+        }
+        
+        .admin-header {
+            background: #333;
+            color: white;
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .admin-header h1 {
+            font-size: 1.5rem;
+            font-weight: 600;
+        }
+        
+        .admin-header .user-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .admin-header .user-info span {
+            color: #fff;
+        }
+        
+        .admin-header .user-info a {
+            color: #fff;
+            text-decoration: none;
+            transition: color 0.3s;
+        }
+        
+        .admin-header .user-info a:hover {
+            color: #ff4d4d;
+        }
+        
+        .admin-nav {
+            background: #444;
+            padding: 0;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .admin-nav ul {
+            list-style: none;
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .admin-nav li {
+            margin: 0;
+        }
+        
+        .admin-nav a {
+            display: block;
+            color: #f5f5f5;
+            text-decoration: none;
+            padding: 1rem 1.5rem;
+            transition: background 0.3s;
+        }
+        
+        .admin-nav a:hover,
+        .admin-nav a.active {
+            background: #ff4d4d;
+        }
+        
+        .admin-container {
+            max-width: 1400px;
+            margin: 2rem auto;
+            padding: 0 2rem;
+        }
+        
+        .admin-card {
+            background: white;
+            border-radius: 8px;
+            padding: 2rem;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            margin-bottom: 2rem;
+        }
+        
+        .admin-card h2 {
+            margin-bottom: 1.5rem;
+            color: #333;
+            font-size: 1.75rem;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 0.75rem 1.5rem;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 1rem;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .btn-primary {
+            background: #ff4d4d;
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            background: #e63939;
+        }
+        
+        .btn-success {
+            background: #ff4d4d;
+            color: white;
+        }
+        
+        .btn-success:hover {
+            background: #e63939;
+        }
+        
+        .btn-danger {
+            background: #c00;
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            background: #a00;
+        }
+        
+        .btn-warning {
+            background: #ff4d4d;
+            color: white;
+        }
+        
+        .btn-warning:hover {
+            background: #e63939;
+        }
+        
+        .btn-secondary {
+            background: #999;
+            color: white;
+        }
+        
+        .btn-secondary:hover {
+            background: #777;
+        }
+        
+        .btn-sm {
+            padding: 0.5rem 1rem;
+            font-size: 0.875rem;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 1rem;
+        }
+        
+        th, td {
+            text-align: left;
+            padding: 1rem;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        th {
+            background: #f5f5f5;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        tr:hover {
+            background: #fafafa;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.3s;
+        }
+        
+        .form-control:focus {
+            outline: none;
+            border-color: #ff4d4d;
+        }
+        
+        textarea.form-control {
+            min-height: 120px;
+            resize: vertical;
+        }
+        
+        .alert {
+            padding: 1rem 1.5rem;
+            border-radius: 6px;
+            margin-bottom: 1.5rem;
+        }
+        
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        
+        .alert-error, .alert-danger {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        
+        .alert-warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+        
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            border-left: 4px solid #ff4d4d;
+        }
+        
+        .stat-card h3 {
+            color: #999;
+            font-size: 0.875rem;
+            font-weight: 500;
+            text-transform: uppercase;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-card .stat-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #333;
+        }
+        
+        .image-preview {
+            max-width: 200px;
+            max-height: 200px;
+            margin-top: 0.5rem;
+            border-radius: 6px;
+            border: 1px solid #ddd;
+        }
+        
+        .action-buttons {
+            display: flex;
+            gap: 0.5rem;
+        }
+        
+        .checkbox-list {
+            max-height: 300px;
+            overflow-y: auto;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 1rem;
+        }
+        
+        .checkbox-item {
+            padding: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .checkbox-item label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+        }
+        
+        .checkbox-item input[type="checkbox"] {
+            margin-right: 0.5rem;
+            width: 18px;
+            height: 18px;
+        }
+        
+        @media (max-width: 768px) {
+            .admin-header h1 {
+                font-size: 1.25rem;
+            }
+            
+            .admin-header .user-info {
+                flex-direction: column;
+                align-items: flex-end;
+                gap: 0.5rem;
+            }
+            
+            .admin-nav ul {
+                flex-direction: column;
+            }
+            
+            .admin-container {
+                padding: 0 1rem;
+            }
+            
+            table {
+                font-size: 0.875rem;
+            }
+            
+            th, td {
+                padding: 0.75rem 0.5rem;
+            }
+        }
+    </style>
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <div class="admin-header">
+        <h1>Joe's Burguer - Painel Admin</h1>
+        {% if user.is_authenticated %}
+        <div class="user-info">
+            <span>{{ user.email }}</span>
+            <a href="{% url 'admin_logout' %}">Sair</a>
+        </div>
+        {% endif %}
+    </div>
+    
+    {% if user.is_authenticated %}
+    <nav class="admin-nav">
+        <ul>
+            <li><a href="{% url 'custom_admin_dashboard' %}" {% if request.resolver_match.url_name == 'custom_admin_dashboard' %}class="active"{% endif %}>Dashboard</a></li>
+            <li><a href="{% url 'admin_kitchen_user_list' %}" {% if 'kitchen_user' in request.resolver_match.url_name %}class="active"{% endif %}>Usuários Cozinha</a></li>
+            <li><a href="{% url 'admin_product_list' %}" {% if 'product' in request.resolver_match.url_name %}class="active"{% endif %}>Produtos</a></li>
+            <li><a href="{% url 'admin_subproduct_list' %}" {% if 'subproduct' in request.resolver_match.url_name %}class="active"{% endif %}>Subprodutos</a></li>
+            <li><a href="{% url 'admin_combo_list' %}" {% if 'combo' in request.resolver_match.url_name %}class="active"{% endif %}>Combos</a></li>
+            <li><a href="{% url 'admin_carousel_list' %}" {% if 'carousel' in request.resolver_match.url_name %}class="active"{% endif %}>Carrossel</a></li>
+            <li><a href="{% url 'admin_order_list' %}" {% if 'order' in request.resolver_match.url_name %}class="active"{% endif %}>Pedidos</a></li>
+        </ul>
+    </nav>
+    {% endif %}
+    
+    <div class="admin-container">
+        {% if messages %}
+            {% for message in messages %}
+            <div class="alert alert-{{ message.tags }}">
+                {{ message }}
+            </div>
+            {% endfor %}
+        {% endif %}
+        
+        {% block content %}{% endblock %}
+    </div>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

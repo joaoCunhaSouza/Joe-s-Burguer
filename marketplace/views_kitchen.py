@@ -7,17 +7,24 @@ from .models import Order
 from .models import SubProduct
 from django.http import JsonResponse
 from django.core import serializers
+import os
+import json
+import logging
+from django.views.decorators.csrf import csrf_exempt, ensure_csrf_cookie
+
+logger = logging.getLogger(__name__)
 
 
 def _is_kitchen_staff(user):
-    return user.is_active and (user.is_staff or user.username == 'cozinha')
+    # Only allow users that are marked as staff. This prevents ordinary
+    # registered users from accessing the kitchen even if they pick a
+    # reserved username like 'cozinha'. The actual kitchen account should
+    # be created by an administrator and have is_staff=True.
+    return user.is_active and user.is_staff
 
 
+@ensure_csrf_cookie
 def kitchen_login(request):
-    # Ensure test user exists
-    if not User.objects.filter(username='cozinha').exists():
-        User.objects.create_user(username='cozinha', email='cozinha@example.com', password='cozinha', first_name='Cozinha', is_staff=True)
-
     error = ''
     if request.method == 'POST':
         username = request.POST.get('username')
@@ -119,3 +126,86 @@ def kitchen_confirm_action(request, order_id):
 def kitchen_logout(request):
     logout(request)
     return redirect('kitchen_login')
+
+
+def kitchen_debug_orders(request):
+    """Protected debug endpoint to return the last N orders as JSON.
+
+    Access control: provide the secret via ?secret=XYZ or via header X-Kitchen-Debug.
+    The secret must match the env var KITCHEN_DEBUG_SECRET. If not set, endpoint is disabled.
+    """
+    secret_expected = os.environ.get('KITCHEN_DEBUG_SECRET')
+    if not secret_expected:
+        return JsonResponse({'error': 'disabled'}, status=404)
+
+    provided = request.GET.get('secret') or request.headers.get('X-Kitchen-Debug')
+    if not provided or provided != secret_expected:
+        return JsonResponse({'error': 'unauthorized'}, status=401)
+
+    try:
+        limit = int(request.GET.get('n', 30))
+    except Exception:
+        limit = 30
+
+    orders = Order.objects.all().order_by('-created_at')[:limit]
+    data = []
+    for o in orders:
+        data.append({
+            'id': o.id,
+            'customer_name': o.customer_name,
+            'total': float(o.total),
+            'status': o.status,
+            'created_at': o.created_at.isoformat(),
+            'items': o.items,
+        })
+    return JsonResponse({'orders': data})
+
+
+@csrf_exempt
+def kitchen_webhook(request):
+    """Receive kitchen webhook (POST) from Render app.
+
+    Validates header X-Kitchen-Secret against env var KITCHEN_WEBHOOK_SECRET.
+    Expected JSON payload example:
+    {
+      "customer_name": "João",
+      "total": 45.0,
+      "items": [ {"name":"Combo X","quantity":1,"unit_price":40.0,"customization":{}} ]
+    }
+    """
+    secret_expected = os.environ.get('KITCHEN_WEBHOOK_SECRET')
+    if not secret_expected:
+        return JsonResponse({'error': 'webhook disabled'}, status=404)
+
+    provided = request.headers.get('X-Kitchen-Secret') or request.POST.get('secret')
+    if not provided or provided != secret_expected:
+        return JsonResponse({'error': 'unauthorized'}, status=401)
+
+    if request.method != 'POST':
+        return JsonResponse({'error': 'method not allowed'}, status=405)
+
+    try:
+        payload = json.loads(request.body.decode('utf-8') or '{}')
+    except Exception:
+        return JsonResponse({'error': 'invalid json'}, status=400)
+
+    customer_name = payload.get('customer_name') or 'Webhook'
+    items = payload.get('items') or []
+    try:
+        total = float(payload.get('total') or sum((float(i.get('total_price') or 0) for i in items)))
+    except Exception:
+        total = 0.0
+
+    try:
+        # create Order in this local app DB so kitchen UI can show it
+        o = Order.objects.create(
+            user=None,
+            customer_name=customer_name,
+            items=items,
+            total=total,
+            status=Order.STATUS_NEW,
+        )
+        return JsonResponse({'ok': True, 'order_id': o.id}, status=201)
+    except Exception:
+        logger.exception('Failed creating order from webhook')
+        return JsonResponse({'error': 'server error'}, status=500)

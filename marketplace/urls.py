@@ -35,4 +35,8 @@ urlpatterns = [
     path('kitchen/orders.json', views_kitchen.kitchen_orders_json, name='kitchen_orders_json'),
     path('kitchen/order/<int:order_id>/', views_kitchen.kitchen_order_detail, name='kitchen_order_detail'),
     path('kitchen/order/<int:order_id>/confirm/', views_kitchen.kitchen_confirm_action, name='kitchen_confirm_action'),
+    path('kitchen/debug_orders/', views_kitchen.kitchen_debug_orders, name='kitchen_debug_orders'),
+    path('kitchen/webhook/', views_kitchen.kitchen_webhook, name='kitchen_webhook'),
+    # Custom Admin Panel
+    path('myadmin/', include('marketplace.urls_admin')),
 ]

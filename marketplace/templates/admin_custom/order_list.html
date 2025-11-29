@@ -1,0 +1,64 @@
+{% extends 'admin_custom/base.html' %}
+
+{% block title %}Pedidos - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <h2>Todos os Pedidos</h2>
+    
+    {% if orders %}
+    <table>
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Cliente</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Data</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for order in orders %}
+            <tr>
+                <td><strong>#{{ order.id }}</strong></td>
+                <td>
+                    {% if order.user %}
+                        {{ order.user.first_name|default:order.user.username }}
+                    {% else %}
+                        {{ order.customer_name|default:"Cliente Anônimo" }}
+                    {% endif %}
+                </td>
+                <td><strong>R$ {{ order.total }}</strong></td>
+                <td>
+                    {% if order.status == 'new' %}
+                        <span style="background: #fff3cd; color: #856404; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">
+                            Novo
+                        </span>
+                    {% elif order.status == 'preparing' %}
+                        <span style="background: #d1ecf1; color: #0c5460; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">
+                            Preparando
+                        </span>
+                    {% elif order.status == 'done' %}
+                        <span style="background: #d4edda; color: #155724; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">
+                            Finalizado
+                        </span>
+                    {% else %}
+                        <span style="background: #f8d7da; color: #721c24; padding: 0.25rem 0.75rem; border-radius: 12px; font-size: 0.875rem; font-weight: 600;">
+                            Cancelado
+                        </span>
+                    {% endif %}
+                </td>
+                <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
+                <td>
+                    <a href="{% url 'admin_order_detail' order.id %}" class="btn btn-primary btn-sm">Ver Detalhes</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #7f8c8d; text-align: center; padding: 3rem;">Nenhum pedido registrado</p>
+    {% endif %}
+</div>
+{% endblock %}

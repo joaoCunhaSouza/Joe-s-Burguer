@@ -1,0 +1,64 @@
+{% extends 'admin_base.html' %}
+{% block title %}Admin - Login{% endblock %}
+
+{% block content %}
+<div style="max-width: 450px; margin: 60px auto; padding: 0;">
+  <div class="admin-card" style="text-align: center;">
+    <div style="font-size: 3rem; margin-bottom: 1rem;">🍔</div>
+    <h2 style="margin-bottom: 0.5rem; color: #667eea;">Joe's Burguer</h2>
+    <p style="color: #666; margin-bottom: 2rem;">Painel Administrativo</p>
+    
+    {% if error %}
+    <div style="background: #fee2e2; color: #991b1b; padding: 1rem; border-radius: 8px; margin-bottom: 1.5rem; text-align: left;">
+      <strong>❌ Erro:</strong> {{ error }}
+    </div>
+    {% endif %}
+    
+    <form method="post" style="text-align: left;">
+      {% csrf_token %}
+      
+      <div style="margin-bottom: 1.5rem;">
+        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #333;">
+          Email do Administrador
+        </label>
+        <input 
+          type="email" 
+          name="email" 
+          required
+          placeholder="seu@email.com"
+          style="width: 100%; padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;"
+          onfocus="this.style.borderColor='#667eea'"
+          onblur="this.style.borderColor='#e2e8f0'"
+        />
+      </div>
+      
+      <div style="margin-bottom: 2rem;">
+        <label style="display: block; margin-bottom: 0.5rem; font-weight: 500; color: #333;">
+          Senha
+        </label>
+        <input 
+          type="password" 
+          name="password" 
+          required
+          placeholder="••••••••"
+          style="width: 100%; padding: 0.75rem; border: 2px solid #e2e8f0; border-radius: 8px; font-size: 1rem; transition: border-color 0.3s;"
+          onfocus="this.style.borderColor='#667eea'"
+          onblur="this.style.borderColor='#e2e8f0'"
+        />
+      </div>
+      
+      <button 
+        type="submit" 
+        class="btn btn-primary" 
+        style="width: 100%; padding: 1rem; font-size: 1rem;"
+      >
+        🔐 Entrar no Painel
+      </button>
+    </form>
+    
+    <div style="margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid #e2e8f0; color: #666; font-size: 0.9rem;">
+      <p>💡 Use o email e senha do superusuário</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

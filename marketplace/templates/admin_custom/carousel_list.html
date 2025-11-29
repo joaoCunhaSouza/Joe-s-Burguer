@@ -1,0 +1,51 @@
+{% extends 'admin_custom/base.html' %}
+
+{% block title %}Carrossel - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="margin: 0;">Imagens do Carrossel</h2>
+        <a href="{% url 'admin_carousel_add' %}" class="btn btn-success">+ Adicionar Imagem</a>
+    </div>
+    
+    <p style="color: #7f8c8d; margin-bottom: 1.5rem;">
+        Gerencie as imagens que aparecem no carrossel da página inicial
+    </p>
+    
+    {% if images %}
+    <table>
+        <thead>
+            <tr>
+                <th>Imagem</th>
+                <th>Texto Alternativo</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for image in images %}
+            <tr>
+                <td>
+                    {% if image.image %}
+                    <img src="{{ image.image.url }}" alt="{{ image.alt_text }}" style="width: 120px; height: 80px; object-fit: cover; border-radius: 6px;">
+                    {% endif %}
+                </td>
+                <td>{{ image.alt_text|default:"Sem descrição" }}</td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="{% url 'admin_carousel_edit' image.id %}" class="btn btn-primary btn-sm">Editar</a>
+                        <form method="post" action="{% url 'admin_carousel_delete' image.id %}" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja excluir esta imagem?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #7f8c8d; text-align: center; padding: 3rem;">Nenhuma imagem no carrossel</p>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,70 @@
+{% extends 'admin_base.html' %}
+{% block title %}Usuários - Admin{% endblock %}
+
+{% block content %}
+<h1 class="admin-page-title">👥 Gerenciar Usuários</h1>
+
+<div class="admin-card">
+  <h2 class="admin-card-title">Lista de Usuários Cadastrados</h2>
+  
+  {% if users %}
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>#ID</th>
+        <th>Nome</th>
+        <th>Email</th>
+        <th>Data de Cadastro</th>
+        <th>Staff</th>
+        <th>Ativo</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for user in users %}
+      <tr>
+        <td><strong>#{{ user.id }}</strong></td>
+        <td>{{ user.get_full_name|default:user.username }}</td>
+        <td>{{ user.email }}</td>
+        <td>{{ user.date_joined|date:"d/m/Y H:i" }}</td>
+        <td>
+          {% if user.is_staff %}
+          <span class="badge badge-preparing">Staff</span>
+          {% else %}
+          <span style="color: #666;">-</span>
+          {% endif %}
+        </td>
+        <td>
+          {% if user.is_active %}
+          <span class="badge badge-done">Ativo</span>
+          {% else %}
+          <span class="badge badge-cancelled">Inativo</span>
+          {% endif %}
+        </td>
+        <td>
+          <a href="/admin/auth/user/{{ user.id }}/change/" class="btn btn-secondary" target="_blank" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+            ✏️ Editar
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div style="text-align: center; padding: 3rem;">
+    <div style="font-size: 3rem; margin-bottom: 1rem;">👥</div>
+    <p style="color: #666; font-size: 1.1rem;">Nenhum usuário encontrado.</p>
+  </div>
+  {% endif %}
+</div>
+
+<div class="admin-card" style="background: #f8f9fa;">
+  <h3 style="margin-bottom: 1rem;">ℹ️ Informações</h3>
+  <ul style="color: #666; line-height: 1.8;">
+    <li><strong>Staff:</strong> Usuários com permissão de acesso à cozinha</li>
+    <li><strong>Ativo:</strong> Usuários que podem fazer login no sistema</li>
+    <li><strong>Superusuários:</strong> Não aparecem nesta lista (administradores)</li>
+    <li><strong>Editar:</strong> Use o Django Admin para gerenciar permissões detalhadas</li>
+  </ul>
+</div>
+{% endblock %}

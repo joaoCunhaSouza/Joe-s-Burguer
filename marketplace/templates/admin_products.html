@@ -1,0 +1,67 @@
+{% extends 'admin_base.html' %}
+{% block title %}Produtos - Admin{% endblock %}
+
+{% block content %}
+<h1 class="admin-page-title">🥤 Gerenciar Produtos</h1>
+
+<div class="admin-card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <h2 class="admin-card-title" style="margin: 0;">Lista de Produtos</h2>
+    <a href="/admin/marketplace/product/add/" class="btn btn-primary" target="_blank">
+      ➕ Adicionar Novo Produto
+    </a>
+  </div>
+  
+  {% if products %}
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Imagem</th>
+        <th>Nome</th>
+        <th>Categoria</th>
+        <th>Preço</th>
+        <th>Ingredientes</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for product in products %}
+      <tr>
+        <td>
+          {% if product.image %}
+          <img src="{{ product.image.url }}" alt="{{ product.name }}" class="table-image">
+          {% else %}
+          <div style="width: 60px; height: 60px; background: #f3f4f6; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+            🥤
+          </div>
+          {% endif %}
+        </td>
+        <td><strong>{{ product.name }}</strong></td>
+        <td>{{ product.category }}</td>
+        <td><strong style="color: #667eea;">R$ {{ product.price }}</strong></td>
+        <td>{{ product.subproducts.count }} ingrediente(s)</td>
+        <td>
+          <div style="display: flex; gap: 0.5rem;">
+            <a href="/admin/marketplace/product/{{ product.id }}/change/" class="btn btn-secondary" target="_blank" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+              ✏️ Editar
+            </a>
+            <a href="/admin/marketplace/product/{{ product.id }}/delete/" class="btn btn-danger" target="_blank" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+              🗑️ Excluir
+            </a>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div style="text-align: center; padding: 3rem;">
+    <div style="font-size: 3rem; margin-bottom: 1rem;">🥤</div>
+    <p style="color: #666; font-size: 1.1rem; margin-bottom: 1.5rem;">Nenhum produto cadastrado ainda.</p>
+    <a href="/admin/marketplace/product/add/" class="btn btn-primary" target="_blank">
+      ➕ Criar Primeiro Produto
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

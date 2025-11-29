@@ -1,0 +1,59 @@
+{% extends 'admin_base.html' %}
+{% block title %}Ingredientes - Admin{% endblock %}
+
+{% block content %}
+<h1 class="admin-page-title">🧀 Gerenciar Ingredientes</h1>
+
+<div class="admin-card">
+  <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+    <h2 class="admin-card-title" style="margin: 0;">Lista de Ingredientes</h2>
+    <a href="/admin/marketplace/subproduct/add/" class="btn btn-primary" target="_blank">
+      ➕ Adicionar Novo Ingrediente
+    </a>
+  </div>
+  
+  {% if subproducts %}
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>Nome</th>
+        <th>Preço Adicional</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for subproduct in subproducts %}
+      <tr>
+        <td><strong>{{ subproduct.name }}</strong></td>
+        <td>
+          {% if subproduct.price > 0 %}
+          <strong style="color: #48bb78;">+ R$ {{ subproduct.price }}</strong>
+          {% else %}
+          <span style="color: #666;">Incluído</span>
+          {% endif %}
+        </td>
+        <td>
+          <div style="display: flex; gap: 0.5rem;">
+            <a href="/admin/marketplace/subproduct/{{ subproduct.id }}/change/" class="btn btn-secondary" target="_blank" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+              ✏️ Editar
+            </a>
+            <a href="/admin/marketplace/subproduct/{{ subproduct.id }}/delete/" class="btn btn-danger" target="_blank" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+              🗑️ Excluir
+            </a>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div style="text-align: center; padding: 3rem;">
+    <div style="font-size: 3rem; margin-bottom: 1rem;">🧀</div>
+    <p style="color: #666; font-size: 1.1rem; margin-bottom: 1.5rem;">Nenhum ingrediente cadastrado ainda.</p>
+    <a href="/admin/marketplace/subproduct/add/" class="btn btn-primary" target="_blank">
+      ➕ Criar Primeiro Ingrediente
+    </a>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

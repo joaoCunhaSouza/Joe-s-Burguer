@@ -1,0 +1,78 @@
+{% extends 'admin_base.html' %}
+{% block title %}Pedidos - Admin{% endblock %}
+
+{% block content %}
+<h1 class="admin-page-title">📦 Gerenciar Pedidos</h1>
+
+<div class="admin-card">
+  <h2 class="admin-card-title">Todos os Pedidos</h2>
+  
+  {% if orders %}
+  <table class="admin-table">
+    <thead>
+      <tr>
+        <th>#ID</th>
+        <th>Cliente</th>
+        <th>Total</th>
+        <th>Status</th>
+        <th>Data do Pedido</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for order in orders %}
+      <tr>
+        <td><strong>#{{ order.id }}</strong></td>
+        <td>{{ order.customer_name }}</td>
+        <td><strong style="color: #667eea;">R$ {{ order.total }}</strong></td>
+        <td>
+          {% if order.status == 'new' %}
+          <span class="badge badge-new">Novo</span>
+          {% elif order.status == 'preparing' %}
+          <span class="badge badge-preparing">Preparando</span>
+          {% elif order.status == 'done' %}
+          <span class="badge badge-done">Concluído</span>
+          {% elif order.status == 'cancelled' %}
+          <span class="badge badge-cancelled">Cancelado</span>
+          {% endif %}
+        </td>
+        <td>{{ order.created_at|date:"d/m/Y H:i" }}</td>
+        <td>
+          <a href="/admin/marketplace/order/{{ order.id }}/change/" class="btn btn-secondary" target="_blank" style="padding: 0.5rem 1rem; font-size: 0.85rem;">
+            👁️ Ver Detalhes
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <div style="text-align: center; padding: 3rem;">
+    <div style="font-size: 3rem; margin-bottom: 1rem;">📦</div>
+    <p style="color: #666; font-size: 1.1rem;">Nenhum pedido encontrado.</p>
+  </div>
+  {% endif %}
+</div>
+
+<div class="admin-card" style="background: #f8f9fa;">
+  <h3 style="margin-bottom: 1rem;">📊 Legenda de Status</h3>
+  <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
+    <div>
+      <span class="badge badge-new">Novo</span>
+      <span style="color: #666; margin-left: 0.5rem;">Pedido recém-criado</span>
+    </div>
+    <div>
+      <span class="badge badge-preparing">Preparando</span>
+      <span style="color: #666; margin-left: 0.5rem;">Em preparo na cozinha</span>
+    </div>
+    <div>
+      <span class="badge badge-done">Concluído</span>
+      <span style="color: #666; margin-left: 0.5rem;">Pedido finalizado</span>
+    </div>
+    <div>
+      <span class="badge badge-cancelled">Cancelado</span>
+      <span style="color: #666; margin-left: 0.5rem;">Pedido cancelado</span>
+    </div>
+  </div>
+</div>
+{% endblock %}

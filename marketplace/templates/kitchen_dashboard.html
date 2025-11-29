@@ -1,21 +1,39 @@
 {% extends 'kitchen_base.html' %}
 {% block title %}Cozinha - Pedidos{% endblock %}
 {% block content %}
-<div style="max-width:1000px;margin:20px auto;padding:20px;background:#fff;border-radius:12px;">
+<div class="kitchen-card">
   <h2>Fila de Pedidos</h2>
   <table class="kitchen-table">
-    <thead><tr><th>ID</th><th>Cliente</th><th>Total</th><th>Status</th><th>Criado</th></tr></thead>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Cliente</th>
+        <th>Total</th>
+        <th>Status</th>
+        <th>Criado</th>
+      </tr>
+    </thead>
     <tbody>
       {% for o in orders %}
-      <tr style="border-top:1px solid #eee">
-        <td><a href="{% url 'kitchen_order_detail' o.id %}">{{ o.id }}</a></td>
-        <td><a href="{% url 'kitchen_order_detail' o.id %}">{{ o.customer_name }}</a></td>
-        <td>R$ {{ o.total }}</td>
-        <td>{{ o.get_status_display }}</td>
-        <td>{{ o.created_at }}</td>
+      <tr>
+        <td><a href="{% url 'kitchen_order_detail' o.id %}" style="color: #ff4d4d; text-decoration: none; font-weight: 600;">{{ o.id }}</a></td>
+        <td><a href="{% url 'kitchen_order_detail' o.id %}" style="color: #333; text-decoration: none;">{{ o.customer_name }}</a></td>
+        <td><strong>R$ {{ o.total }}</strong></td>
+        <td>
+          {% if o.status == 'new' %}
+            <span style="color: #ff4d4d; font-weight: 600;">{{ o.get_status_display }}</span>
+          {% elif o.status == 'preparing' %}
+            <span style="color: #333; font-weight: 600;">{{ o.get_status_display }}</span>
+          {% else %}
+            <span style="color: #999; font-weight: 600;">{{ o.get_status_display }}</span>
+          {% endif %}
+        </td>
+        <td>{{ o.created_at|date:"d/m/Y H:i" }}</td>
       </tr>
       {% empty %}
-      <tr><td colspan="5">Nenhum pedido.</td></tr>
+      <tr>
+        <td colspan="5" style="text-align: center; padding: 2rem; color: #999;">Nenhum pedido ativo no momento</td>
+      </tr>
       {% endfor %}
     </tbody>
   </table>
@@ -36,18 +54,21 @@ async function fetchOrdersAndRender(){
     tbody.innerHTML = '';
     if(!data.orders || data.orders.length === 0){
       const tr = document.createElement('tr');
-      tr.innerHTML = '<td colspan="5">Nenhum pedido.</td>';
+      tr.innerHTML = '<td colspan="5" style="text-align: center; padding: 2rem; color: #999;">Nenhum pedido ativo no momento</td>';
       tbody.appendChild(tr);
       return;
     }
     data.orders.forEach(o => {
       const tr = document.createElement('tr');
-      tr.style.borderTop = '1px solid #eee';
-      tr.innerHTML = `<td><a href="/kitchen/order/${o.id}/">${o.id}</a></td>`+
-                     `<td><a href="/kitchen/order/${o.id}/">${o.customer_name}</a></td>`+
-                     `<td>R$ ${o.total}</td>`+
-                     `<td>${o.status}</td>`+
-                     `<td>${new Date(o.created_at).toLocaleString()}</td>`;
+      let statusColor = '#999';
+      if(o.status === 'Novo') statusColor = '#ff4d4d';
+      else if(o.status === 'Em preparação') statusColor = '#333';
+      
+      tr.innerHTML = `<td><a href="/kitchen/order/${o.id}/" style="color: #ff4d4d; text-decoration: none; font-weight: 600;">${o.id}</a></td>`+
+                     `<td><a href="/kitchen/order/${o.id}/" style="color: #333; text-decoration: none;">${o.customer_name}</a></td>`+
+                     `<td><strong>R$ ${o.total}</strong></td>`+
+                     `<td><span style="color: ${statusColor}; font-weight: 600;">${o.status}</span></td>`+
+                     `<td>${new Date(o.created_at).toLocaleString('pt-BR')}</td>`;
       tbody.appendChild(tr);
     });
   }catch(e){

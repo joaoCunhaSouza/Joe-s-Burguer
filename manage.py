@@ -15,22 +15,28 @@ def main():
             "available on your PYTHONPATH environment variable? Did you "
             "forget to activate a virtual environment?"
         ) from exc
+    
     # Developer convenience: when running the development server, open
-    # the main site and the kitchen login in the default browser.
+    # the main site, kitchen login and admin login in the default browser.
     # Only do this for local development when the command is `runserver`.
-    if 'runserver' in sys.argv:
+    # Use RUN_MAIN to detect if we're in the reloader child process.
+    if 'runserver' in sys.argv and os.environ.get('RUN_MAIN') == 'true':
         try:
             import threading, webbrowser, time
 
             def _open_dev_urls():
                 # Small delay to let the server start
-                time.sleep(1.0)
+                time.sleep(1.5)
                 try:
                     webbrowser.open('http://127.0.0.1:8000/')
                 except Exception:
                     pass
                 try:
                     webbrowser.open('http://127.0.0.1:8000/kitchen/login/')
+                except Exception:
+                    pass
+                try:
+                    webbrowser.open('http://127.0.0.1:8000/myadmin/login/')
                 except Exception:
                     pass
 

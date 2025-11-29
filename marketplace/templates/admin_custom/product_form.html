@@ -1,0 +1,88 @@
+{% extends 'admin_custom/base.html' %}
+
+{% block title %}{{ action }} Produto - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <h2>{{ action }} Produto</h2>
+    
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        
+        <div class="form-group">
+            <label for="name">Nome do Produto *</label>
+            <input 
+                type="text" 
+                name="name" 
+                id="name"
+                class="form-control" 
+                value="{{ product.name|default:'' }}"
+                required
+            />
+        </div>
+        
+        <div class="form-group">
+            <label for="price">Preço (R$) *</label>
+            <input 
+                type="number" 
+                name="price" 
+                id="price"
+                class="form-control" 
+                step="0.01"
+                value="{{ product.price|default:'' }}"
+                required
+            />
+        </div>
+        
+        <div class="form-group">
+            <label for="description">Descrição *</label>
+            <textarea 
+                name="description" 
+                id="description"
+                class="form-control"
+                required
+            >{{ product.description|default:'' }}</textarea>
+        </div>
+        
+        <div class="form-group">
+            <label for="image">Imagem {% if not product %}*{% endif %}</label>
+            <input 
+                type="file" 
+                name="image" 
+                id="image"
+                class="form-control"
+                accept="image/*"
+                {% if not product %}required{% endif %}
+                onchange="previewImage(event)"
+            />
+            {% if product.image %}
+            <img src="{{ product.image.url }}" alt="{{ product.name }}" class="image-preview" id="preview">
+            <p style="margin-top: 0.5rem; color: #7f8c8d; font-size: 0.875rem;">Deixe em branco para manter a imagem atual</p>
+            {% else %}
+            <img id="preview" class="image-preview" style="display: none;">
+            {% endif %}
+        </div>
+        
+        <div style="display: flex; gap: 1rem; margin-top: 2rem;">
+            <button type="submit" class="btn btn-success">Salvar</button>
+            <a href="{% url 'admin_product_list' %}" class="btn btn-secondary">Cancelar</a>
+        </div>
+    </form>
+</div>
+
+<script>
+function previewImage(event) {
+    const preview = document.getElementById('preview');
+    const file = event.target.files[0];
+    
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.style.display = 'block';
+        }
+        reader.readAsDataURL(file);
+    }
+}
+</script>
+{% endblock %}

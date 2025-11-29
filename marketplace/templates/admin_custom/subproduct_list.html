@@ -1,0 +1,55 @@
+{% extends 'admin_custom/base.html' %}
+
+{% block title %}Subprodutos - Admin{% endblock %}
+
+{% block content %}
+<div class="admin-card">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <h2 style="margin: 0;">Subprodutos</h2>
+        <a href="{% url 'admin_subproduct_add' %}" class="btn btn-success">+ Adicionar Subproduto</a>
+    </div>
+    
+    {% if subproducts %}
+    <table>
+        <thead>
+            <tr>
+                <th>Imagem</th>
+                <th>Nome</th>
+                <th>Produto Principal</th>
+                <th>Preço Adicional</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for subproduct in subproducts %}
+            <tr>
+                <td>
+                    {% if subproduct.image %}
+                    <img src="{{ subproduct.image.url }}" alt="{{ subproduct.name }}" style="width: 60px; height: 60px; object-fit: cover; border-radius: 6px;">
+                    {% else %}
+                    <div style="width: 60px; height: 60px; background: #ddd; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                        🥤
+                    </div>
+                    {% endif %}
+                </td>
+                <td><strong>{{ subproduct.name }}</strong></td>
+                <td>{{ subproduct.product.name }}</td>
+                <td>R$ {{ subproduct.price }}</td>
+                <td>
+                    <div class="action-buttons">
+                        <a href="{% url 'admin_subproduct_edit' subproduct.id %}" class="btn btn-primary btn-sm">Editar</a>
+                        <form method="post" action="{% url 'admin_subproduct_delete' subproduct.id %}" style="display: inline;" onsubmit="return confirm('Tem certeza que deseja excluir este subproduto?');">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-danger btn-sm">Excluir</button>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <p style="color: #7f8c8d; text-align: center; padding: 3rem;">Nenhum subproduto cadastrado</p>
+    {% endif %}
+</div>
+{% endblock %}

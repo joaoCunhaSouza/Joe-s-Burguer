@@ -53,6 +53,14 @@ def register(request):
         name = request.POST.get('name')
         email = request.POST.get('email')
         password = request.POST.get('password')
+        # Block reserved usernames/local-parts to prevent users from registering
+        # as privileged accounts (e.g. 'cozinha', 'admin'). The username is set
+        # to the email by convention, so check the local part as well.
+        reserved = {'cozinha', 'admin', 'root', 'staff', 'administrator', 'superuser'}
+        local_part = (email or '').split('@')[0].lower()
+        if local_part in reserved or (email or '').lower() in reserved:
+            return render(request, 'register.html', {'error': 'Nome de usuário reservado. Escolha outro e-mail.'})
+
         user = User.objects.create_user(username=email, email=email, password=password)
         user.first_name = name
         user.save()
