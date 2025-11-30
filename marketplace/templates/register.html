@@ -49,6 +49,64 @@ input {
   font-size: 1em;
 }
 
+/* Indicador de requisitos de senha */
+.password-requirements {
+  margin: 10px 0;
+  padding: 10px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 0.85em;
+}
+
+.password-requirements h4 {
+  margin-bottom: 8px;
+  color: #333;
+  font-size: 0.9em;
+}
+
+.requirement {
+  display: flex;
+  align-items: center;
+  margin: 4px 0;
+  color: #999;
+}
+
+.requirement.valid {
+  color: #4caf50;
+}
+
+.requirement.invalid {
+  color: #f44336;
+}
+
+.requirement::before {
+  content: '✗';
+  margin-right: 8px;
+  font-weight: bold;
+}
+
+.requirement.valid::before {
+  content: '✓';
+  color: #4caf50;
+}
+
+.requirement.invalid::before {
+  content: '✗';
+  color: #f44336;
+}
+
+/* Mensagem de erro */
+.error-message {
+  background: #ffebee;
+  color: #c62828;
+  padding: 10px;
+  border-radius: 4px;
+  margin-bottom: 15px;
+  border: 1px solid #ef9a9a;
+  font-size: 0.9em;
+}
+
 /* Botão */
 button {
   background: #ff4d4d;
@@ -60,22 +118,96 @@ button {
   font-size: 1em;
   cursor: pointer;
   transition: background 0.3s ease;
+  margin-top: 10px;
 }
 
 button:hover {
-  background: #ff4d4d;
+  background: #e63939;
+}
+
+button:disabled {
+  background: #cccccc;
+  cursor: not-allowed;
 }
 </style>
 </head>
 <body>
-<form method="post">
+<form method="post" id="registerForm">
   <h2>Cadastro</h2>
+  
+  {% if error %}
+  <div class="error-message">{{ error }}</div>
+  {% endif %}
+  
   {% csrf_token %}
-  <input name="name" placeholder="Nome" required>
-  <input name="phone" placeholder="Celular" required>
-  <input type="email" name="email" placeholder="Gmail" required>
-  <input type="password" name="password" placeholder="Senha" required>
-  <button type="submit">Cadastrar</button>
+  <input name="name" id="name" placeholder="Nome" required>
+  <input name="phone" id="phone" placeholder="Celular" required>
+  <input type="email" name="email" id="email" placeholder="Gmail" required>
+  <input type="password" name="password" id="password" placeholder="Senha" required>
+  
+  <div class="password-requirements">
+    <h4>Requisitos da senha:</h4>
+    <div class="requirement" id="req-length">Mínimo de 8 caracteres</div>
+    <div class="requirement" id="req-uppercase">Pelo menos 1 letra maiúscula</div>
+    <div class="requirement" id="req-lowercase">Pelo menos 1 letra minúscula</div>
+    <div class="requirement" id="req-number">Pelo menos 1 número</div>
+    <div class="requirement" id="req-special">Pelo menos 1 caractere especial (!@#$%^&*)</div>
+  </div>
+  
+  <button type="submit" id="submitBtn">Cadastrar</button>
 </form>
+
+<script>
+const passwordInput = document.getElementById('password');
+const form = document.getElementById('registerForm');
+const submitBtn = document.getElementById('submitBtn');
+
+// Requisitos da senha
+const requirements = {
+  length: { element: document.getElementById('req-length'), regex: /.{8,}/ },
+  uppercase: { element: document.getElementById('req-uppercase'), regex: /[A-Z]/ },
+  lowercase: { element: document.getElementById('req-lowercase'), regex: /[a-z]/ },
+  number: { element: document.getElementById('req-number'), regex: /[0-9]/ },
+  special: { element: document.getElementById('req-special'), regex: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/ }
+};
+
+function validatePassword(password) {
+  let allValid = true;
+  
+  for (const key in requirements) {
+    const req = requirements[key];
+    const isValid = req.regex.test(password);
+    
+    if (isValid) {
+      req.element.classList.remove('invalid');
+      req.element.classList.add('valid');
+    } else {
+      req.element.classList.remove('valid');
+      req.element.classList.add('invalid');
+      allValid = false;
+    }
+  }
+  
+  return allValid;
+}
+
+passwordInput.addEventListener('input', function() {
+  const isValid = validatePassword(this.value);
+  submitBtn.disabled = !isValid;
+});
+
+form.addEventListener('submit', function(e) {
+  const password = passwordInput.value;
+  
+  if (!validatePassword(password)) {
+    e.preventDefault();
+    alert('Por favor, certifique-se de que sua senha atende a todos os requisitos.');
+    return false;
+  }
+});
+
+// Validação inicial
+passwordInput.dispatchEvent(new Event('input'));
+</script>
 </body>
 </html>

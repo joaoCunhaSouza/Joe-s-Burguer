@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.views.decorators.http import require_POST
 import json
+import re
 from django.db.models import F, Sum
 from django.middleware.csrf import get_token
 
@@ -48,11 +49,43 @@ def logout_view(request):
     logout(request)
     return redirect('login')
 
+def validate_password(password):
+    """
+    Valida se a senha atende aos requisitos de segurança:
+    - Mínimo de 8 caracteres
+    - Pelo menos 1 letra maiúscula
+    - Pelo menos 1 letra minúscula
+    - Pelo menos 1 número
+    - Pelo menos 1 caractere especial
+    """
+    if len(password) < 8:
+        return False, "A senha deve ter no mínimo 8 caracteres."
+    
+    if not re.search(r'[A-Z]', password):
+        return False, "A senha deve conter pelo menos uma letra maiúscula."
+    
+    if not re.search(r'[a-z]', password):
+        return False, "A senha deve conter pelo menos uma letra minúscula."
+    
+    if not re.search(r'[0-9]', password):
+        return False, "A senha deve conter pelo menos um número."
+    
+    if not re.search(r'[!@#$%^&*()_+\-=\[\]{};:\'",.<>/?\\|`~]', password):
+        return False, "A senha deve conter pelo menos um caractere especial (!@#$%^&* etc)."
+    
+    return True, ""
+
 def register(request):
     if request.method == 'POST':
         name = request.POST.get('name')
         email = request.POST.get('email')
         password = request.POST.get('password')
+        phone = request.POST.get('phone')
+        
+        # Validação de campos vazios
+        if not name or not email or not password or not phone:
+            return render(request, 'register.html', {'error': 'Todos os campos são obrigatórios.'})
+        
         # Block reserved usernames/local-parts to prevent users from registering
         # as privileged accounts (e.g. 'cozinha', 'admin'). The username is set
         # to the email by convention, so check the local part as well.
@@ -60,7 +93,17 @@ def register(request):
         local_part = (email or '').split('@')[0].lower()
         if local_part in reserved or (email or '').lower() in reserved:
             return render(request, 'register.html', {'error': 'Nome de usuário reservado. Escolha outro e-mail.'})
+        
+        # Verificar se o email já está cadastrado
+        if User.objects.filter(email=email).exists():
+            return render(request, 'register.html', {'error': 'Este e-mail já está cadastrado.'})
+        
+        # Validar a senha
+        is_valid, error_message = validate_password(password)
+        if not is_valid:
+            return render(request, 'register.html', {'error': error_message})
 
+        # Criar o usuário
         user = User.objects.create_user(username=email, email=email, password=password)
         user.first_name = name
         user.save()
