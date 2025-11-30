@@ -358,11 +358,11 @@
         <ul>
             <li><a href="{% url 'custom_admin_dashboard' %}" {% if request.resolver_match.url_name == 'custom_admin_dashboard' %}class="active"{% endif %}>Dashboard</a></li>
             <li><a href="{% url 'admin_kitchen_user_list' %}" {% if 'kitchen_user' in request.resolver_match.url_name %}class="active"{% endif %}>Usuários Cozinha</a></li>
-            <li><a href="{% url 'admin_product_list' %}" {% if 'product' in request.resolver_match.url_name %}class="active"{% endif %}>Produtos</a></li>
-            <li><a href="{% url 'admin_subproduct_list' %}" {% if 'subproduct' in request.resolver_match.url_name %}class="active"{% endif %}>Subprodutos</a></li>
-            <li><a href="{% url 'admin_combo_list' %}" {% if 'combo' in request.resolver_match.url_name %}class="active"{% endif %}>Combos</a></li>
-            <li><a href="{% url 'admin_carousel_list' %}" {% if 'carousel' in request.resolver_match.url_name %}class="active"{% endif %}>Carrossel</a></li>
-            <li><a href="{% url 'admin_order_list' %}" {% if 'order' in request.resolver_match.url_name %}class="active"{% endif %}>Pedidos</a></li>
+            <li><a href="{% url 'admin_product_list' %}" {% if request.resolver_match.url_name == 'admin_product_list' or request.resolver_match.url_name == 'admin_product_add' or request.resolver_match.url_name == 'admin_product_edit' or request.resolver_match.url_name == 'admin_product_delete' %}class="active"{% endif %}>Produtos</a></li>
+            <li><a href="{% url 'admin_subproduct_list' %}" {% if request.resolver_match.url_name == 'admin_subproduct_list' or request.resolver_match.url_name == 'admin_subproduct_add' or request.resolver_match.url_name == 'admin_subproduct_edit' or request.resolver_match.url_name == 'admin_subproduct_delete' %}class="active"{% endif %}>Subprodutos</a></li>
+            <li><a href="{% url 'admin_combo_list' %}" {% if request.resolver_match.url_name == 'admin_combo_list' or request.resolver_match.url_name == 'admin_combo_add' or request.resolver_match.url_name == 'admin_combo_edit' or request.resolver_match.url_name == 'admin_combo_delete' %}class="active"{% endif %}>Combos</a></li>
+            <li><a href="{% url 'admin_carousel_list' %}" {% if request.resolver_match.url_name == 'admin_carousel_list' or request.resolver_match.url_name == 'admin_carousel_add' or request.resolver_match.url_name == 'admin_carousel_edit' or request.resolver_match.url_name == 'admin_carousel_delete' %}class="active"{% endif %}>Carrossel</a></li>
+            <li><a href="{% url 'admin_order_list' %}" {% if request.resolver_match.url_name == 'admin_order_list' or request.resolver_match.url_name == 'admin_order_detail' %}class="active"{% endif %}>Pedidos</a></li>
         </ul>
     </nav>
     {% endif %}

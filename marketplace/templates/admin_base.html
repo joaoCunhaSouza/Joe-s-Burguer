@@ -108,7 +108,12 @@
         border-left: 3px solid transparent;
       }
       
-      .admin-nav a:hover,
+      .admin-nav a:hover {
+        background: rgba(102, 126, 234, 0.1);
+        color: #667eea;
+        border-left-color: #667eea;
+      }
+      
       .admin-nav a.active {
         background: rgba(102, 126, 234, 0.1);
         color: #667eea;
@@ -315,6 +320,19 @@
         color: #991b1b;
       }
       
+      /* Debug Info */
+      .debug-info {
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        background: rgba(0,0,0,0.8);
+        color: white;
+        padding: 10px;
+        border-radius: 5px;
+        font-size: 12px;
+        z-index: 9999;
+      }
+      
       /* Responsive */
       @media (max-width: 768px) {
         .admin-layout {
@@ -337,7 +355,7 @@
     <div class="admin-container">
       <!-- Header -->
       <header class="admin-header">
-        <a href="{% url 'admin_dashboard' %}" class="admin-logo">
+        <a href="{% url 'custom_admin_dashboard' %}" class="admin-logo">
           🍔 Joe's Burguer Admin
         </a>
         {% if user.is_authenticated %}
@@ -355,45 +373,45 @@
           <nav>
             <ul class="admin-nav">
               <li>
-                <a href="{% url 'admin_dashboard' %}" class="{% if request.path == '/admin-panel/' %}active{% endif %}">
+                <a href="{% url 'custom_admin_dashboard' %}" class="{% if request.resolver_match.url_name == 'custom_admin_dashboard' %}active{% endif %}">
                   <span class="admin-nav-icon">📊</span>
                   Dashboard
                 </a>
               </li>
               <li>
-                <a href="{% url 'admin_combos' %}" class="{% if 'combos' in request.path %}active{% endif %}">
+                <a href="{% url 'admin_combo_list' %}" class="{% if request.resolver_match.url_name == 'admin_combo_list' or request.resolver_match.url_name == 'admin_combo_add' or request.resolver_match.url_name == 'admin_combo_edit' or request.resolver_match.url_name == 'admin_combo_delete' %}active{% endif %}">
                   <span class="admin-nav-icon">🍔</span>
                   Combos
                 </a>
               </li>
               <li>
-                <a href="{% url 'admin_products' %}" class="{% if 'products' in request.path %}active{% endif %}">
+                <a href="{% url 'admin_product_list' %}" class="{% if request.resolver_match.url_name == 'admin_product_list' or request.resolver_match.url_name == 'admin_product_add' or request.resolver_match.url_name == 'admin_product_edit' or request.resolver_match.url_name == 'admin_product_delete' %}active{% endif %}">
                   <span class="admin-nav-icon">🥤</span>
                   Produtos
                 </a>
               </li>
               <li>
-                <a href="{% url 'admin_subproducts' %}" class="{% if 'subproducts' in request.path %}active{% endif %}">
+                <a href="{% url 'admin_subproduct_list' %}" class="{% if request.resolver_match.url_name == 'admin_subproduct_list' or request.resolver_match.url_name == 'admin_subproduct_add' or request.resolver_match.url_name == 'admin_subproduct_edit' or request.resolver_match.url_name == 'admin_subproduct_delete' %}active{% endif %}">
                   <span class="admin-nav-icon">🧀</span>
                   Ingredientes
                 </a>
               </li>
               <li>
-                <a href="{% url 'admin_carousel' %}" class="{% if 'carousel' in request.path %}active{% endif %}">
+                <a href="{% url 'admin_carousel_list' %}" class="{% if request.resolver_match.url_name == 'admin_carousel_list' or request.resolver_match.url_name == 'admin_carousel_add' or request.resolver_match.url_name == 'admin_carousel_edit' or request.resolver_match.url_name == 'admin_carousel_delete' %}active{% endif %}">
                   <span class="admin-nav-icon">🖼️</span>
                   Carrossel
                 </a>
               </li>
               <li>
-                <a href="{% url 'admin_orders' %}" class="{% if 'orders' in request.path %}active{% endif %}">
+                <a href="{% url 'admin_order_list' %}" class="{% if request.resolver_match.url_name == 'admin_order_list' or request.resolver_match.url_name == 'admin_order_detail' %}active{% endif %}">
                   <span class="admin-nav-icon">📦</span>
                   Pedidos
                 </a>
               </li>
               <li>
-                <a href="{% url 'admin_users' %}" class="{% if 'users' in request.path %}active{% endif %}">
+                <a href="{% url 'admin_kitchen_user_list' %}" class="{% if request.resolver_match.url_name == 'admin_kitchen_user_list' or request.resolver_match.url_name == 'admin_kitchen_user_add' or request.resolver_match.url_name == 'admin_kitchen_user_edit' or request.resolver_match.url_name == 'admin_kitchen_user_delete' %}active{% endif %}">
                   <span class="admin-nav-icon">👥</span>
-                  Usuários
+                  Usuários Cozinha
                 </a>
               </li>
               <li>
@@ -413,6 +431,13 @@
           </div>
         </main>
       </div>
+      
+      <!-- Debug Info -->
+      <div class="debug-info">
+        URL Name: {{ request.resolver_match.url_name }}<br>
+        Path: {{ request.path }}
+      </div>
+      
       {% else %}
       <main class="admin-main">
         <div class="admin-content">
