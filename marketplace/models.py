@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.shortcuts import render
+from django.utils import timezone
+from datetime import timedelta
 
 class CarouselImage(models.Model):
     image = models.ImageField(upload_to='carousel/')
@@ -166,3 +168,97 @@ class Order(models.Model):
 
     def __str__(self):
         return f"Pedido #{self.id} - {self.customer_name or (self.user.username if self.user else 'Anon') } - {self.status}"
+
+    def save(self, *args, **kwargs):
+        """Ao finalizar um pedido, adiciona ao histórico do usuário e limpa o carrinho"""
+        is_new = self.pk is None
+        old_status = None
+        
+        if not is_new:
+            try:
+                old_order = Order.objects.get(pk=self.pk)
+                old_status = old_order.status
+            except Order.DoesNotExist:
+                pass
+        
+        super().save(*args, **kwargs)
+        
+        # Se o pedido mudou para DONE e tem usuário
+        if old_status != Order.STATUS_DONE and self.status == Order.STATUS_DONE and self.user:
+            # Adiciona ao histórico
+            OrderHistory.objects.create(
+                user=self.user,
+                order_data=self.items,
+                total=self.total,
+                order_date=self.created_at
+            )
+            
+            # Limpa o carrinho do usuário
+            # Remove todos os itens que correspondem aos combos/produtos deste pedido
+            CartItem.objects.filter(user=self.user).delete()
+
+
+class OrderHistory(models.Model):
+    """Histórico de pedidos do usuário - mantém registros por até 90 dias"""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='order_history')
+    order_data = models.JSONField(help_text='Dados completos do pedido (itens, customizações, etc)')
+    total = models.DecimalField(max_digits=8, decimal_places=2)
+    order_date = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-order_date']
+        verbose_name = 'Histórico de Pedido'
+        verbose_name_plural = 'Histórico de Pedidos'
+
+    def __str__(self):
+        return f"Histórico #{self.id} - {self.user.username} - R$ {self.total}"
+
+    @property
+    def is_expired(self):
+        """Verifica se o pedido tem mais de 90 dias"""
+        return timezone.now() - self.order_date > timedelta(days=90)
+
+    @classmethod
+    def cleanup_old_orders(cls):
+        """Remove pedidos com mais de 90 dias"""
+        cutoff_date = timezone.now() - timedelta(days=90)
+        deleted_count, _ = cls.objects.filter(order_date__lt=cutoff_date).delete()
+        return deleted_count
+
+    def get_summary(self):
+        """Retorna um resumo do pedido para exibição na lista"""
+        items = self.order_data or []
+        if not items:
+            return "Pedido vazio"
+        
+        total_items = sum(item.get('quantity', 1) for item in items)
+        
+        # Se for apenas 1 item
+        if len(items) == 1:
+            item = items[0]
+            name = item.get('name', 'Item')
+            qty = item.get('quantity', 1)
+            if qty > 1:
+                return f"{qty}x {name}"
+            return name
+        
+        # Se forem múltiplos itens, mostra o primeiro e quantos outros tem
+        first_item = items[0]
+        first_name = first_item.get('name', 'Item')
+        first_qty = first_item.get('quantity', 1)
+        
+        if first_qty > 1:
+            first_text = f"{first_qty}x {first_name}"
+        else:
+            first_text = first_name
+        
+        # Conta quantos itens a mais tem
+        other_items_count = len(items) - 1
+        
+        return f"{first_text} + {other_items_count} item(s)"
+    
+    def get_items_count(self):
+        """Retorna o número total de itens (considerando quantidades)"""
+        items = self.order_data or []
+        return sum(item.get('quantity', 1) for item in items)

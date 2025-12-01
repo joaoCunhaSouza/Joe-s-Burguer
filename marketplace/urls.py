@@ -20,6 +20,8 @@ urlpatterns = [
     path('compra-sucesso', compra_sucesso, name='compra_sucesso'),
     path('compraerrada', compra_errada, name='compra_errada'),
     path('compra-pendente', compra_pendente, name='compra_pendente'),
+    path('historico/', views.order_history, name='order_history'),
+    path('historico/<int:order_id>/', views.order_history_detail, name='order_history_detail'),
     path('conta/', include('marketplace.urls_account')),
     # Token / offline endpoints
     path('token/login/', views_token.token_login, name='token_login'),

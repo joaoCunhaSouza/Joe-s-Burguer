@@ -1,51 +1,343 @@
 {% extends 'base.html' %}
-{% block title %}Histórico de Pedidos{% endblock %}
-{% block content %}
-<div class="account-form-container">
-  <h2>Histórico de Pedidos</h2>
-  <ul class="order-list">
-    {% for pedido in pedidos %}
-      <li class="order-item">Pedido #{{ pedido.id }} - {{ pedido.data }} - {{ pedido.status }}</li>
-    {% empty %}
-      <li class="order-item">Nenhum pedido encontrado.</li>
-    {% endfor %}
-  </ul>
-</div>
-{% endblock %}
+
+{% load static %}
+
+{% block title %}Histórico de Pedidos - Joe's Burgers{% endblock %}
+
 {% block style %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
 <style>
-.account-form-container {
-  max-width: 380px;
-  margin: 32px auto;
-  background: #fff;
-  border-radius: 16px;
-  box-shadow: 0 8px 32px rgba(0,0,0,0.10);
-  padding: 32px 24px 24px 24px;
+:root {
+  --primary: #ff4d4d;
+  --secondary: #ffccbc;
+  --text: #333;
+  --bg: #f5f5f5;
 }
-.account-form-container h2 {
-  color: var(--primary);
-  margin-bottom: 18px;
-  text-align: left;
-}
-.order-list {
-  list-style: none;
+
+* {
+  margin: 0;
   padding: 0;
+  box-sizing: border-box;
+  font-family: 'Roboto', Arial, sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  padding-bottom: 70px;
+}
+
+.page-title {
+  background: white;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  margin-bottom: 8px;
+}
+
+.page-title h1 {
+  font-size: 20px;
+  color: var(--primary);
+  text-align: left;
   margin: 0;
 }
-.order-item {
-  background: #fafafa;
-  border-radius: 8px;
-  margin: 8px 0;
-  padding: 12px 10px;
-  color: #333;
-  font-size: 1rem;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+
+.filter-container {
+  background: white;
+  padding: 16px;
+  margin: 8px;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
 }
-@media (max-width: 600px) {
-  .account-form-container {
-    max-width: 98vw;
-    padding: 18px 4vw 18px 4vw;
+
+.filter-label {
+  font-size: 14px;
+  color: #666;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.filter-buttons {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  flex: 1;
+  min-width: 80px;
+  padding: 10px 16px;
+  border: 2px solid #ddd;
+  background: white;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.filter-btn.active {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: white;
+}
+
+.filter-btn:active {
+  transform: scale(0.97);
+}
+
+.orders-list {
+  padding: 8px;
+}
+
+.order-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  padding: 16px;
+  margin-bottom: 12px;
+  cursor: pointer;
+  transition: transform 0.2s;
+}
+
+.order-card:active {
+  transform: scale(0.98);
+}
+
+.order-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.order-date-info {
+  flex: 1;
+}
+
+.order-date {
+  font-size: 12px;
+  color: #999;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.order-id {
+  font-size: 11px;
+  color: #bbb;
+  font-weight: 500;
+}
+
+.order-total {
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--primary);
+}
+
+.order-summary {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.4;
+  margin-bottom: 8px;
+}
+
+.order-summary-highlight {
+  font-weight: 500;
+  color: var(--text);
+}
+
+.order-footer {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 4px;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 60px 20px;
+}
+
+.empty-icon {
+  font-size: 64px;
+  color: #ddd;
+  margin-bottom: 16px;
+}
+
+.empty-text {
+  font-size: 16px;
+  color: #999;
+  margin-bottom: 8px;
+}
+
+.empty-subtext {
+  font-size: 14px;
+  color: #ccc;
+}
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #ddd;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 10px 0;
+  z-index: 999;
+}
+
+.nav-item {
+  position: relative;
+  font-size: 24px;
+  color: var(--primary);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.nav-item:active {
+  transform: scale(0.9);
+}
+
+.cart-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* DESKTOP BLOCK */
+@media only screen and (min-width: 768px) {
+  body::before {
+    content: "Este sistema é otimizado para dispositivos móveis. Acesse de um smartphone.";
+    display: block;
+    padding: 50px;
+    text-align: center;
+    font-size: 24px;
+    color: var(--primary);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: white;
+    z-index: 1000;
+  }
+  body > *:not(:before) {
+    display: none !important;
   }
 }
 </style>
+{% endblock %}
+
+{% block content %}
+<div class="page-title">
+  <h1>Histórico de Pedidos</h1>
+</div>
+
+<div class="filter-container">
+  <label class="filter-label">Filtrar por período:</label>
+  <div class="filter-buttons">
+    <button class="filter-btn {% if current_filter == '7' %}active{% endif %}" 
+            onclick="filterOrders('7')">
+      Últimos 7 dias
+    </button>
+    <button class="filter-btn {% if current_filter == '30' %}active{% endif %}" 
+            onclick="filterOrders('30')">
+      Últimos 30 dias
+    </button>
+    <button class="filter-btn {% if current_filter == '90' %}active{% endif %}" 
+            onclick="filterOrders('90')">
+      Últimos 90 dias
+    </button>
+  </div>
+</div>
+
+<div class="orders-list">
+  {% if orders %}
+    {% for order in orders %}
+    <div class="order-card" onclick="viewOrderDetail({{ order.id }})">
+      <div class="order-header">
+        <div class="order-date-info">
+          <span class="order-date">{{ order.date|date:"d/m/Y às H:i" }}</span>
+          <span class="order-id">Pedido #{{ order.id }}</span>
+        </div>
+        <span class="order-total">R$ {{ order.total|floatformat:2 }}</span>
+      </div>
+      <div class="order-summary">
+        <span class="order-summary-highlight">{{ order.summary }}</span>
+      </div>
+      <div class="order-footer">
+        Ver todos os itens
+        <i class="fas fa-chevron-right"></i>
+      </div>
+    </div>
+    {% endfor %}
+  {% else %}
+    <div class="empty-state">
+      <div class="empty-icon">
+        <i class="fas fa-receipt"></i>
+      </div>
+      <div class="empty-text">Nenhum pedido encontrado</div>
+      <div class="empty-subtext">Você não tem pedidos neste período</div>
+    </div>
+  {% endif %}
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item" onclick="window.location.href='{% url 'home' %}'">
+    <i class="fas fa-home"></i>
+  </div>
+  <div class="nav-item" onclick="window.location.href='{% url 'cart' %}'">
+    <i class="fas fa-shopping-cart"></i>
+    {% if cart_items_count and cart_items_count > 0 %}
+    <span class="cart-count">{{ cart_items_count }}</span>
+    {% endif %}
+  </div>
+  <div class="nav-item" onclick="window.location.href='{% url 'account_order_history' %}'">
+    <i class="fas fa-history"></i>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Detectar se estamos em /conta/historico/ ou /historico/
+const isAccountUrl = window.location.pathname.includes('/conta/');
+
+function filterOrders(days) {
+  if (isAccountUrl) {
+    window.location.href = '/conta/historico/?filter=' + days;
+  } else {
+    window.location.href = '/historico/?filter=' + days;
+  }
+}
+
+function viewOrderDetail(orderId) {
+  if (isAccountUrl) {
+    window.location.href = '/conta/historico/' + orderId + '/';
+  } else {
+    window.location.href = '/historico/' + orderId + '/';
+  }
+}
+</script>
 {% endblock %}

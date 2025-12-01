@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from .models import CarouselImage, CartItem, Combo, Product, SubProduct # Make sure all models are imported
+from .models import CarouselImage, CartItem, Combo, Product, SubProduct, OrderHistory
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
@@ -9,6 +9,8 @@ import json
 import re
 from django.db.models import F, Sum
 from django.middleware.csrf import get_token
+from django.utils import timezone
+from datetime import timedelta
 
 # ... (suas outras views como login, register, etc. permanecem as mesmas)
 
@@ -307,3 +309,91 @@ def csrf_refresh(request):
     """
     token = get_token(request)
     return JsonResponse({'csrfToken': token})
+
+
+@login_required
+def order_history(request):
+    """View para exibir o histórico de pedidos do usuário com filtros de data"""
+    # Primeiro, limpa pedidos antigos
+    OrderHistory.cleanup_old_orders()
+    
+    # Pega o filtro selecionado (padrão: 7 dias)
+    filter_days = request.GET.get('filter', '7')
+    
+    try:
+        days = int(filter_days)
+    except ValueError:
+        days = 7
+    
+    # Calcula a data de corte
+    cutoff_date = timezone.now() - timedelta(days=days)
+    
+    # Busca os pedidos do usuário dentro do período
+    orders = OrderHistory.objects.filter(
+        user=request.user,
+        order_date__gte=cutoff_date
+    ).order_by('-order_date')
+    
+    # Processa os pedidos para exibição
+    processed_orders = []
+    for order in orders:
+        processed_orders.append({
+            'id': order.id,
+            'date': order.order_date,
+            'total': order.total,
+            'summary': order.get_summary(),
+            'items': order.order_data
+        })
+    
+    context = {
+        'orders': processed_orders,
+        'current_filter': filter_days,
+        'cart_items_count': sum(item.quantity for item in CartItem.objects.filter(user=request.user))
+    }
+    
+    return render(request, 'order_history.html', context)
+
+
+@login_required
+def order_history_detail(request, order_id):
+    """View para exibir os detalhes completos de um pedido do histórico"""
+    order = get_object_or_404(OrderHistory, id=order_id, user=request.user)
+    
+    # Processa os itens do pedido
+    items_data = []
+    for item in order.order_data or []:
+        name = item.get('name', 'Item')
+        qty = item.get('quantity', 1)
+        unit_price = item.get('unit_price', 0)
+        line_total = item.get('total_price', 0)
+        customization = item.get('customization', {})
+        
+        ingredientes = []
+        # Reconstrói a lista de ingredientes baseado na customização
+        for sub_id, sub_qty in customization.items():
+            try:
+                sp = SubProduct.objects.get(id=sub_id)
+                removed = False
+                try:
+                    removed = int(sub_qty) <= 0
+                except Exception:
+                    removed = False
+                ingredientes.append({'name': sp.name, 'removed': removed})
+            except SubProduct.DoesNotExist:
+                pass
+        
+        items_data.append({
+            'name': name,
+            'quantity': qty,
+            'unit_price': unit_price,
+            'line_total': line_total,
+            'ingredientes': ingredientes,
+        })
+    
+    context = {
+        'order': order,
+        'items_data': items_data,
+        'cart_items_count': sum(item.quantity for item in CartItem.objects.filter(user=request.user))
+    }
+    
+    return render(request, 'order_history_detail.html', context)

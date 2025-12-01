@@ -332,7 +332,7 @@
       </div>
       <ul class="user-actions">
         <li><a href="{% url 'account_settings' %}">Mudar Dados da Conta</a></li>
-        <li><a href="{% url 'order_history' %}">Histórico de Pedidos</a></li>
+        <li><a href="{% url 'account_order_history' %}">Histórico de Pedidos</a></li>
       </ul>
       <button class="logout-btn" onclick="window.location.href='{% url 'logout' %}'">Sair da Conta</button>
     </div>
@@ -356,6 +356,9 @@
       {% if cart_items_count and cart_items_count > 0 %}
       <span class="cart-count">{{ cart_items_count }}</span>
       {% endif %}
+    </div>
+    <div class="nav-item" onclick="window.location.href='{% url 'account_order_history' %}'">
+      <i class="fas fa-history"></i>
     </div>
   </div>
 

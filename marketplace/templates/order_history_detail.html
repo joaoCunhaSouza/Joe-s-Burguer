@@ -1,0 +1,340 @@
+{% extends 'base.html' %}
+
+{% load static %}
+
+{% block title %}Detalhes do Pedido - Joe's Burgers{% endblock %}
+
+{% block style %}
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+<style>
+:root {
+  --primary: #ff4d4d;
+  --secondary: #ffccbc;
+  --text: #333;
+  --bg: #f5f5f5;
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Roboto', Arial, sans-serif;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  padding-bottom: 70px;
+}
+
+.header {
+  background: white;
+  padding: 16px;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.back-btn {
+  background: none;
+  border: none;
+  color: var(--primary);
+  font-size: 24px;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+}
+
+.header h1 {
+  font-size: 20px;
+  color: var(--primary);
+  flex: 1;
+}
+
+.order-info-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  padding: 16px;
+  margin: 16px 8px;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-size: 14px;
+  color: #666;
+}
+
+.info-value {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.info-value.total {
+  font-size: 20px;
+  font-weight: bold;
+  color: var(--primary);
+}
+
+.items-section {
+  padding: 0 8px 16px 8px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: bold;
+  color: var(--primary);
+  margin: 16px 8px 12px 8px;
+}
+
+.item-card {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 8px;
+}
+
+.item-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+}
+
+.item-quantity {
+  font-size: 14px;
+  color: #666;
+  margin-right: 8px;
+}
+
+.item-price {
+  font-size: 16px;
+  font-weight: bold;
+  color: var(--primary);
+  white-space: nowrap;
+}
+
+.item-details {
+  margin-top: 8px;
+}
+
+.detail-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #666;
+  padding: 4px 0;
+}
+
+.customization-section {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid #f0f0f0;
+}
+
+.customization-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 8px;
+}
+
+.ingredient-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: #666;
+  padding: 4px 0;
+}
+
+.ingredient-icon {
+  font-size: 12px;
+}
+
+.ingredient-icon.added {
+  color: #4caf50;
+}
+
+.ingredient-icon.removed {
+  color: #f44336;
+}
+
+.ingredient-name {
+  flex: 1;
+}
+
+.ingredient-name.removed {
+  text-decoration: line-through;
+  color: #999;
+}
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  border-top: 1px solid #ddd;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 10px 0;
+  z-index: 999;
+}
+
+.nav-item {
+  position: relative;
+  font-size: 24px;
+  color: var(--primary);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+
+.nav-item:active {
+  transform: scale(0.9);
+}
+
+.cart-count {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+/* DESKTOP BLOCK */
+@media only screen and (min-width: 768px) {
+  body::before {
+    content: "Este sistema é otimizado para dispositivos móveis. Acesse de um smartphone.";
+    display: block;
+    padding: 50px;
+    text-align: center;
+    font-size: 24px;
+    color: var(--primary);
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: white;
+    z-index: 1000;
+  }
+  body > *:not(:before) {
+    display: none !important;
+  }
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="header">
+  <button class="back-btn" onclick="window.history.back()">
+    <i class="fas fa-arrow-left"></i>
+  </button>
+  <h1>Detalhes do Pedido</h1>
+</div>
+
+<div class="order-info-card">
+  <div class="info-row">
+    <span class="info-label">Pedido #</span>
+    <span class="info-value">{{ order.id }}</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Data</span>
+    <span class="info-value">{{ order.order_date|date:"d/m/Y às H:i" }}</span>
+  </div>
+  <div class="info-row">
+    <span class="info-label">Total</span>
+    <span class="info-value total">R$ {{ order.total|floatformat:2 }}</span>
+  </div>
+</div>
+
+<h2 class="section-title">Itens do Pedido</h2>
+
+<div class="items-section">
+  {% for item in items_data %}
+  <div class="item-card">
+    <div class="item-header">
+      <div style="flex: 1;">
+        <span class="item-quantity">{{ item.quantity }}x</span>
+        <span class="item-name">{{ item.name }}</span>
+      </div>
+      <span class="item-price">R$ {{ item.line_total|floatformat:2 }}</span>
+    </div>
+    
+    <div class="item-details">
+      <div class="detail-row">
+        <span>Preço unitário:</span>
+        <span>R$ {{ item.unit_price|floatformat:2 }}</span>
+      </div>
+    </div>
+    
+    {% if item.ingredientes %}
+    <div class="customization-section">
+      <div class="customization-title">Customizações:</div>
+      {% for ing in item.ingredientes %}
+      <div class="ingredient-item">
+        <i class="fas {% if ing.removed %}fa-minus-circle ingredient-icon removed{% else %}fa-check-circle ingredient-icon added{% endif %}"></i>
+        <span class="ingredient-name {% if ing.removed %}removed{% endif %}">
+          {{ ing.name }}
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<!-- BOTTOM NAV -->
+<div class="bottom-nav">
+  <div class="nav-item" onclick="window.location.href='{% url 'home' %}'">
+    <i class="fas fa-home"></i>
+  </div>
+  <div class="nav-item" onclick="window.location.href='{% url 'cart' %}'">
+    <i class="fas fa-shopping-cart"></i>
+    {% if cart_items_count and cart_items_count > 0 %}
+    <span class="cart-count">{{ cart_items_count }}</span>
+    {% endif %}
+  </div>
+  <div class="nav-item" onclick="window.location.href='{% url 'order_history' %}'">
+    <i class="fas fa-history"></i>
+  </div>
+</div>
+{% endblock %}
