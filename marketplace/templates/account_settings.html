@@ -3,27 +3,47 @@
 {% block content %}
 <div class="account-form-container">
   <h2>Dados da Conta</h2>
-  <form method="post" class="account-form">{% csrf_token %}
+  <form method="post" class="account-form" id="accountForm">{% csrf_token %}
     <label for="name">Nome:</label>
     <input type="text" name="name" id="name" value="{{ request.user.first_name }}" required>
+    
     <label for="email">E-mail:</label>
     <input type="email" name="email" id="email" value="{{ request.user.email }}" required>
+    
     <label for="phone">Telefone:</label>
     <input type="text" name="phone" id="phone" value="{{ request.user.profile.phone|default:'' }}" maxlength="20" inputmode="tel" pattern="[0-9()+\-\s]*">
-    <label for="current_password">Senha Atual:</label>
+    
+    <label for="current_password">Senha Atual: <span style="color: #ff4d4d;">*</span></label>
     <div class="password-field">
       <input type="password" name="current_password" id="current_password" autocomplete="current-password" required>
       <span class="toggle-password" onclick="togglePassword('current_password', this)"><i class="fas fa-eye"></i></span>
     </div>
-    <label for="password">Nova Senha:</label>
+    
+    <label for="password">Nova Senha (opcional):</label>
     <div class="password-field">
       <input type="password" name="password" id="password" autocomplete="new-password">
       <span class="toggle-password" onclick="togglePassword('password', this)"><i class="fas fa-eye"></i></span>
     </div>
+    
+    <div class="password-requirements" id="passwordRequirements" style="display: none;">
+      <p style="font-size: 12px; color: #666; margin: 4px 0 8px 0;">A senha deve conter:</p>
+      <ul style="font-size: 12px; color: #999; margin: 0; padding-left: 20px;">
+        <li id="req-length">Mínimo de 8 caracteres</li>
+        <li id="req-upper">Pelo menos 1 letra maiúscula</li>
+        <li id="req-lower">Pelo menos 1 letra minúscula</li>
+        <li id="req-number">Pelo menos 1 número</li>
+        <li id="req-special">Pelo menos 1 caractere especial (!@#$%^&* etc)</li>
+      </ul>
+    </div>
+    
     <button type="submit" class="logout-btn" style="margin-top:18px;">Salvar Alterações</button>
   </form>
   {% if messages %}
-    <ul class="account-messages">{% for message in messages %}<li>{{ message }}</li>{% endfor %}</ul>
+    <ul class="account-messages">
+      {% for message in messages %}
+        <li class="{% if message.tags %}message-{{ message.tags }}{% endif %}">{{ message }}</li>
+      {% endfor %}
+    </ul>
   {% endif %}
 </div>
 {% endblock %}
@@ -45,7 +65,6 @@ body {
   width: 100vw;
 }
 .account-form-container h2 {
-
   color: #ff4d4d;
   margin-bottom: 18px;
 }
@@ -126,6 +145,32 @@ body {
   padding: 6px 0;
   font-size: 0.98em;
 }
+.account-messages li.message-error {
+  color: #c62828;
+  background: #ffebee;
+}
+.account-messages li.message-info {
+  color: #0277bd;
+  background: #e1f5fe;
+}
+.password-requirements {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 8px 12px;
+  margin-top: -4px;
+  margin-bottom: 8px;
+}
+.password-requirements ul li {
+  margin: 4px 0;
+  transition: color 0.2s;
+}
+.password-requirements ul li.valid {
+  color: #219150 !important;
+  font-weight: 500;
+}
+.password-requirements ul li.invalid {
+  color: #c62828 !important;
+}
 @media (max-width: 600px) {
   .account-form-container {
     max-width: 98vw;
@@ -165,5 +210,84 @@ function togglePassword(inputId, el) {
     el.querySelector('i').classList.add('fa-eye');
   }
 }
+
+// Validação de senha em tempo real
+const passwordInput = document.getElementById('password');
+const requirementsDiv = document.getElementById('passwordRequirements');
+
+passwordInput.addEventListener('focus', function() {
+  if (this.value.length > 0 || document.activeElement === this) {
+    requirementsDiv.style.display = 'block';
+  }
+});
+
+passwordInput.addEventListener('input', function() {
+  const password = this.value;
+  
+  if (password.length === 0) {
+    requirementsDiv.style.display = 'none';
+    return;
+  }
+  
+  requirementsDiv.style.display = 'block';
+  
+  // Verifica cada requisito
+  const lengthReq = document.getElementById('req-length');
+  const upperReq = document.getElementById('req-upper');
+  const lowerReq = document.getElementById('req-lower');
+  const numberReq = document.getElementById('req-number');
+  const specialReq = document.getElementById('req-special');
+  
+  // Mínimo de 8 caracteres
+  if (password.length >= 8) {
+    lengthReq.classList.add('valid');
+    lengthReq.classList.remove('invalid');
+  } else {
+    lengthReq.classList.add('invalid');
+    lengthReq.classList.remove('valid');
+  }
+  
+  // Letra maiúscula
+  if (/[A-Z]/.test(password)) {
+    upperReq.classList.add('valid');
+    upperReq.classList.remove('invalid');
+  } else {
+    upperReq.classList.add('invalid');
+    upperReq.classList.remove('valid');
+  }
+  
+  // Letra minúscula
+  if (/[a-z]/.test(password)) {
+    lowerReq.classList.add('valid');
+    lowerReq.classList.remove('invalid');
+  } else {
+    lowerReq.classList.add('invalid');
+    lowerReq.classList.remove('valid');
+  }
+  
+  // Número
+  if (/[0-9]/.test(password)) {
+    numberReq.classList.add('valid');
+    numberReq.classList.remove('invalid');
+  } else {
+    numberReq.classList.add('invalid');
+    numberReq.classList.remove('valid');
+  }
+  
+  // Caractere especial
+  if (/[!@#$%^&*()_+\-=\[\]{};:'",.<>/?\\|`~]/.test(password)) {
+    specialReq.classList.add('valid');
+    specialReq.classList.remove('invalid');
+  } else {
+    specialReq.classList.add('invalid');
+    specialReq.classList.remove('valid');
+  }
+});
+
+passwordInput.addEventListener('blur', function() {
+  if (this.value.length === 0) {
+    requirementsDiv.style.display = 'none';
+  }
+});
 </script>
 {% endblock %}

@@ -277,7 +277,7 @@ body {
     <div class="order-card" onclick="viewOrderDetail({{ order.id }})">
       <div class="order-header">
         <div class="order-date-info">
-          <span class="order-date">{{ order.date|date:"d/m/Y às H:i" }}</span>
+          <span class="order-date">{{ order.date|date:"d/m/Y \à\s H:i" }}</span>
           <span class="order-id">Pedido #{{ order.id }}</span>
         </div>
         <span class="order-total">R$ {{ order.total|floatformat:2 }}</span>

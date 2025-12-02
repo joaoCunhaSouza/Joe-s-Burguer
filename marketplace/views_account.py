@@ -1,5 +1,5 @@
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth import logout, update_session_auth_hash
+from django.contrib.auth import logout, update_session_auth_hash, authenticate
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.forms import PasswordChangeForm
 from django.contrib import messages
@@ -8,6 +8,33 @@ from django.contrib.auth.hashers import make_password
 from .models import OrderHistory, CartItem, SubProduct
 from django.utils import timezone
 from datetime import timedelta
+import re
+
+def validate_password(password):
+    """
+    Valida se a senha atende aos requisitos de segurança:
+    - Mínimo de 8 caracteres
+    - Pelo menos 1 letra maiúscula
+    - Pelo menos 1 letra minúscula
+    - Pelo menos 1 número
+    - Pelo menos 1 caractere especial
+    """
+    if len(password) < 8:
+        return False, "A senha deve ter no mínimo 8 caracteres."
+    
+    if not re.search(r'[A-Z]', password):
+        return False, "A senha deve conter pelo menos uma letra maiúscula."
+    
+    if not re.search(r'[a-z]', password):
+        return False, "A senha deve conter pelo menos uma letra minúscula."
+    
+    if not re.search(r'[0-9]', password):
+        return False, "A senha deve conter pelo menos um número."
+    
+    if not re.search(r'[!@#$%^&*()_+\-=\[\]{};:\'",.<>/?\\|`~]', password):
+        return False, "A senha deve conter pelo menos um caractere especial (!@#$%^&* etc)."
+    
+    return True, ""
 
 @login_required
 def edit_profile(request):
@@ -70,18 +97,39 @@ def order_history(request):
     except ValueError:
         days = 7
     
-    # Calcula a data de corte
-    cutoff_date = timezone.now() - timedelta(days=days)
+    # Data/hora atual
+    now = timezone.now()
     
-    # Busca os pedidos do usuário dentro do período
-    orders = OrderHistory.objects.filter(
+    # Busca TODOS os pedidos do usuário (até 90 dias)
+    all_orders = OrderHistory.objects.filter(
         user=request.user,
-        order_date__gte=cutoff_date
+        order_date__gte=now - timedelta(days=90)
     ).order_by('-order_date')
+    
+    # Filtra os pedidos baseado na diferença de tempo desde a criação
+    filtered_orders = []
+    for order in all_orders:
+        # Calcula quantos dias se passaram desde que o pedido foi feito
+        time_diff = now - order.order_date
+        days_passed = time_diff.total_seconds() / 86400  # converte para dias (segundos / 86400)
+        
+        # Categoriza baseado no tempo decorrido
+        if days == 7:
+            # Mostra pedidos com MENOS de 7 dias completos
+            if days_passed < 7:
+                filtered_orders.append(order)
+        elif days == 30:
+            # Mostra pedidos entre 7 e 30 dias completos
+            if 7 <= days_passed < 30:
+                filtered_orders.append(order)
+        elif days == 90:
+            # Mostra pedidos entre 30 e 90 dias completos
+            if 30 <= days_passed < 90:
+                filtered_orders.append(order)
     
     # Processa os pedidos para exibição
     processed_orders = []
-    for order in orders:
+    for order in filtered_orders:
         processed_orders.append({
             'id': order.id,
             'date': order.order_date,
@@ -146,28 +194,61 @@ def order_history_detail(request, order_id):
 def account_settings(request):
     user = request.user
     profile = getattr(user, 'profile', None)
+    
     if request.method == 'POST':
         name = request.POST.get('name')
         email = request.POST.get('email')
         phone = request.POST.get('phone')
-        password = request.POST.get('password')
+        current_password = request.POST.get('current_password')
+        new_password = request.POST.get('password')
+        
+        # Verifica a senha atual
+        if not authenticate(username=user.username, password=current_password):
+            messages.error(request, 'Senha atual incorreta.')
+            return redirect('account_settings')
+        
         changed = False
+        
+        # Atualiza nome
         if name and name != user.first_name:
             user.first_name = name
             changed = True
+        
+        # Atualiza email
         if email and email != user.email:
+            # Verifica se o email já está em uso
+            if User.objects.filter(email=email).exclude(id=user.id).exists():
+                messages.error(request, 'Este e-mail já está em uso.')
+                return redirect('account_settings')
             user.email = email
             changed = True
+        
+        # Atualiza telefone
         if profile and phone and phone != getattr(profile, 'phone', None):
             profile.phone = phone
             profile.save()
-        if password:
-            user.password = make_password(password)
+        
+        # Atualiza senha se fornecida
+        if new_password:
+            is_valid, error_message = validate_password(new_password)
+            if not is_valid:
+                messages.error(request, error_message)
+                return redirect('account_settings')
+            
+            user.set_password(new_password)
             changed = True
+            
+            # Atualiza a sessão para não deslogar o usuário
+            update_session_auth_hash(request, user)
+        
         if changed:
             user.save()
-        messages.success(request, 'Dados atualizados com sucesso!')
+            messages.success(request, 'Dados atualizados com sucesso!')
+        else:
+            messages.info(request, 'Nenhuma alteração foi feita.')
+        
         return redirect('account_settings')
+    
     return render(request, 'account_settings.html')
 
 @login_required

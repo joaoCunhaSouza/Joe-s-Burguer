@@ -325,18 +325,39 @@ def order_history(request):
     except ValueError:
         days = 7
     
-    # Calcula a data de corte
-    cutoff_date = timezone.now() - timedelta(days=days)
+    # Data/hora atual
+    now = timezone.now()
     
-    # Busca os pedidos do usuário dentro do período
-    orders = OrderHistory.objects.filter(
+    # Busca TODOS os pedidos do usuário (até 90 dias)
+    all_orders = OrderHistory.objects.filter(
         user=request.user,
-        order_date__gte=cutoff_date
+        order_date__gte=now - timedelta(days=90)
     ).order_by('-order_date')
+    
+    # Filtra os pedidos baseado na diferença de tempo desde a criação
+    filtered_orders = []
+    for order in all_orders:
+        # Calcula quantos dias se passaram desde que o pedido foi feito
+        time_diff = now - order.order_date
+        days_passed = time_diff.total_seconds() / 86400  # converte para dias (segundos / 86400)
+        
+        # Categoriza baseado no tempo decorrido
+        if days == 7:
+            # Mostra pedidos com MENOS de 7 dias completos
+            if days_passed < 7:
+                filtered_orders.append(order)
+        elif days == 30:
+            # Mostra pedidos entre 7 e 30 dias completos
+            if 7 <= days_passed < 30:
+                filtered_orders.append(order)
+        elif days == 90:
+            # Mostra pedidos entre 30 e 90 dias completos
+            if 30 <= days_passed < 90:
+                filtered_orders.append(order)
     
     # Processa os pedidos para exibição
     processed_orders = []
-    for order in orders:
+    for order in filtered_orders:
         processed_orders.append({
             'id': order.id,
             'date': order.order_date,
